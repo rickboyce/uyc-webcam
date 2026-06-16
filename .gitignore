@@ -12,12 +12,11 @@
 routeros-secrets.rsc
 
 # Local generated files
-data/
-test-data/
-latest.jpg
 weather.json
 weather-working.json
 camera-working.jpg
+events.json
+webcam.jpg
 
 # macOS
 .DS_Store
@@ -25,3 +24,4 @@ camera-working.jpg
 # Docker/build noise
 *.tar
 *.log
+
