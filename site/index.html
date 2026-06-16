@@ -279,6 +279,11 @@
             border-radius: 999px;
         }
 
+        .weather-heading-condition {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -293,6 +298,77 @@
             border-radius: 0.5rem;
             padding: 0.75rem;
             box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
+        }
+
+        .weather-grid > div {
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            background: var(--card-bg);
+        }
+
+        .weather-grid > div::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: var(--uyc-blue);
+        }
+
+        .weather-condition-icon {
+            position: absolute;
+            top: 0.35rem;
+            right: 0.45rem;
+            width: 3.25rem;
+            height: 3.25rem;
+            object-fit: contain;
+            opacity: 0.96;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 3px rgba(21, 61, 98, 0.16));
+        }
+
+        .weather-card-temperature,
+        .weather-card-wind,
+        .weather-card-rain {
+            padding-right: 4.2rem;
+        }
+
+        .weather-grid .weather-label {
+            font-size: 0.68rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.045em;
+        }
+
+        .weather-grid .weather-main {
+            line-height: 1.2;
+        }
+
+        .current-primary {
+            display: block;
+            color: var(--uyc-blue-dark);
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+        }
+
+        .current-detail {
+            display: block;
+            margin-top: 0.16rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .weather-grid .wind-direction {
+            margin-right: 0.25rem;
+        }
+
+        .weather-grid .wind-arrow {
+            width: 1.65em;
+            height: 1.65em;
+            vertical-align: -0.42em;
         }
 
         .weather-label {
@@ -443,6 +519,158 @@
             margin-top: 0.75rem;
         }
 
+        .weather-day {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            text-align: left;
+            background: var(--card-bg);
+        }
+
+        .weather-day .weather-condition-icon {
+            width: 3.1rem;
+            height: 3.1rem;
+        }
+
+        .weather-day-head {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.65rem;
+            align-items: center;
+            padding-right: 3rem;
+        }
+
+        .weather-day-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 3.9rem;
+            padding: 0.4rem 0.35rem;
+            background: var(--uyc-blue-light);
+            border: 1px solid var(--border);
+            border-radius: 0.45rem;
+            color: var(--uyc-blue-dark);
+            font-weight: 800;
+            line-height: 1.05;
+            text-align: center;
+        }
+
+        .weather-day-date-weekday,
+        .weather-day-date-month {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .weather-day-date-number {
+            font-size: 1.35rem;
+            letter-spacing: -0.04em;
+        }
+
+        .weather-day-summary {
+            min-width: 0;
+        }
+
+        .weather-day-summary .weather-temp-range {
+            margin-top: 0.18rem;
+        }
+
+        .weather-day-summary .weather-temp-high {
+            font-size: 1.28rem;
+        }
+
+        .weather-day-summary .weather-temp-low,
+        .weather-day-summary .weather-temp-separator {
+            font-size: 0.95rem;
+        }
+
+        .weather-day-title {
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 850;
+            line-height: 1.2;
+        }
+
+        .weather-day-subtitle {
+            margin-top: 0.15rem;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .weather-temp-range {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            color: var(--uyc-blue-dark);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+        }
+
+        .weather-temp-high {
+            font-size: 1.75rem;
+        }
+
+        .weather-temp-low,
+        .weather-temp-separator {
+            color: var(--muted);
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .weather-day-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.45rem;
+        }
+
+        .weather-stat {
+            padding: 0.45rem 0.5rem;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 0.45rem;
+        }
+
+        .weather-stat-label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.68rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.045em;
+        }
+
+        .weather-stat-value {
+            display: block;
+            margin-top: 0.08rem;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 850;
+        }
+
+        .weather-stat-direction .weather-stat-value {
+            color: var(--uyc-blue-dark);
+            font-size: 0.95rem;
+        }
+
+        .weather-stat-direction .wind-direction {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            color: var(--uyc-blue-dark);
+            font-weight: 900;
+        }
+
+        .weather-stat-direction .wind-arrow {
+            width: 1.8em;
+            height: 1.8em;
+            vertical-align: -0.45em;
+        }
+
         .weather-links {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -507,6 +735,124 @@
                 min-width: 5rem;
                 margin: 0 auto;
             }
+
+            .weather-day {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                grid-template-areas: "summary stats";
+                align-items: stretch;
+                gap: 0.55rem;
+                padding: 0.6rem 0.6rem 0.6rem 0.75rem;
+                text-align: left;
+            }
+
+            .weather-day .weather-condition-icon {
+                position: static;
+                display: block;
+                width: 2.45rem;
+                height: 2.45rem;
+                margin: -0.05rem auto -0.1rem auto;
+                filter: drop-shadow(0 1px 2px rgba(21, 61, 98, 0.14));
+            }
+
+            .weather-day-head {
+                grid-area: summary;
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 0.28rem;
+                align-content: start;
+                min-width: 5.9rem;
+                max-width: 6.7rem;
+                padding-right: 0;
+                text-align: center;
+            }
+
+            .weather-day-date {
+                width: fit-content;
+                min-width: 3.8rem;
+                margin: 0 auto;
+                padding: 0.35rem 0.3rem;
+            }
+
+            .weather-day-date-weekday,
+            .weather-day-date-month {
+                font-size: 0.64rem;
+            }
+
+            .weather-day-date-number {
+                font-size: 1.18rem;
+            }
+
+            .weather-day-title {
+                font-size: 0.82rem;
+            }
+
+            .weather-temp-range {
+                justify-content: center;
+            }
+
+            .weather-day-summary .weather-temp-range {
+                margin-top: 0.1rem;
+            }
+
+            .weather-day-summary .weather-temp-high {
+                font-size: 1.05rem;
+            }
+
+            .weather-day-summary .weather-temp-low,
+            .weather-day-summary .weather-temp-separator {
+                font-size: 0.82rem;
+            }
+
+            .weather-day-stats {
+                grid-area: stats;
+                grid-template-columns: 1fr;
+                gap: 0.28rem;
+                align-content: stretch;
+            }
+
+            .weather-stat {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.45rem;
+                padding: 0.28rem 0.42rem;
+                min-height: 1.5rem;
+            }
+
+            .weather-stat-label {
+                font-size: 0.62rem;
+            }
+
+            .weather-stat-value {
+                margin-top: 0;
+                font-size: 0.82rem;
+                text-align: right;
+            }
+
+            .weather-stat-direction .weather-stat-value {
+                font-size: 0.86rem;
+                min-width: 0;
+            }
+
+            .weather-stat-direction .wind-direction {
+                display: inline-flex;
+                width: max-content;
+                justify-content: flex-start;
+                gap: 0.12rem;
+            }
+
+            .weather-stat-direction .wind-arrow {
+                width: 1.45em;
+                height: 1.45em;
+            }
+
+            .weather-card-temperature,
+            .weather-card-wind,
+            .weather-card-rain {
+                padding-right: 3.8rem;
+            }
+
         }
     </style>
 </head>
@@ -526,20 +872,20 @@
     </div>
 
     <section class="weather">
-        <h2>Current Weather</h2>
+        <h2>Current Weather<span class="weather-heading-condition" id="weather-condition-heading"></span></h2>
 
         <div class="weather-grid">
-            <div>
-                <div class="weather-label">Now</div>
+            <div class="weather-card-temperature">
+                <div class="weather-label">Temperature</div>
                 <div class="weather-main" id="weather-now">Loading...</div>
             </div>
 
-            <div>
+            <div class="weather-card-wind">
                 <div class="weather-label">Wind</div>
                 <div class="weather-main" id="weather-wind">Loading...</div>
             </div>
 
-            <div>
+            <div class="weather-card-rain">
                 <div class="weather-label">Rain</div>
                 <div class="weather-main" id="weather-rain">Loading...</div>
             </div>
@@ -648,6 +994,81 @@
                 };
 
                 return descriptions[code] || "Unknown";
+            }
+
+            function weatherIconName(code) {
+                const icons = {
+                    0: "clear-day",
+                    1: "partly-cloudy-day",
+                    2: "partly-cloudy-day",
+                    3: "overcast",
+                    45: "fog",
+                    48: "fog",
+                    51: "drizzle",
+                    53: "drizzle",
+                    55: "drizzle",
+                    56: "sleet",
+                    57: "sleet",
+                    61: "rain",
+                    63: "rain",
+                    65: "rain",
+                    66: "sleet",
+                    67: "sleet",
+                    71: "snow",
+                    73: "snow",
+                    75: "snow",
+                    77: "snowflake",
+                    80: "partly-cloudy-day-rain",
+                    81: "rain",
+                    82: "extreme-rain",
+                    85: "snow",
+                    86: "extreme-snow",
+                    95: "thunderstorms-rain",
+                    96: "thunderstorms-day-rain",
+                    99: "thunderstorms-rain"
+                };
+
+                return icons[code] || "not-available";
+            }
+
+            function meteoconMarkup(iconName, description) {
+                return `<img class="weather-condition-icon" src="/assets/meteocons/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+            }
+
+            function weatherIconMarkup(code, description) {
+                return meteoconMarkup(weatherIconName(code), description);
+            }
+
+            function beaufortScaleFromMph(mph) {
+                if (mph < 1) return 0;
+                if (mph < 4) return 1;
+                if (mph < 8) return 2;
+                if (mph < 13) return 3;
+                if (mph < 19) return 4;
+                if (mph < 25) return 5;
+                if (mph < 32) return 6;
+                if (mph < 39) return 7;
+                if (mph < 47) return 8;
+                if (mph < 55) return 9;
+                if (mph < 64) return 10;
+                if (mph < 73) return 11;
+                return 12;
+            }
+
+            function beaufortIconName(mph) {
+                return `wind-beaufort-${beaufortScaleFromMph(mph)}`;
+            }
+
+            function temperatureIconName(celsius) {
+                if (celsius < 16) {
+                    return "thermometer-colder";
+                }
+
+                if (celsius >= 22) {
+                    return "thermometer-warmer";
+                }
+
+                return "thermometer";
             }
 
             function compassDirection(degrees) {
@@ -891,15 +1312,18 @@
                     const gustMph = Math.round(current.wind_gusts_10m);
                     const windDir = compassDirection(current.wind_direction_10m);
                     const rainToday = daily.precipitation_probability_max[0];
+                    const currentWeatherDescription = weatherDescription(current.weather_code);
 
-                    document.getElementById("weather-now").textContent =
-                        `${temp}°C, feels ${feels}°C — ${weatherDescription(current.weather_code)}`;
+                    document.getElementById("weather-condition-heading").textContent = ` – ${currentWeatherDescription}`;
+
+                    document.getElementById("weather-now").innerHTML =
+                        `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}°C</span><span class="current-detail">Feels ${feels}°C</span>`;
 
                     document.getElementById("weather-wind").innerHTML =
-                        `${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph} mph, gusts ${gustMph} mph`;
+                        `${meteoconMarkup(beaufortIconName(windMph), `Beaufort force ${beaufortScaleFromMph(windMph)}`)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
 
-                    document.getElementById("weather-rain").textContent =
-                        `${rainToday}% max chance today`;
+                    document.getElementById("weather-rain").innerHTML =
+                        `${weatherIconMarkup(current.weather_code, currentWeatherDescription)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
 
                     renderHourlyWind(data);
 
@@ -908,27 +1332,56 @@
 
                     for (let i = 0; i < daily.time.length; i++) {
                         const date = new Date(daily.time[i] + "T12:00:00");
-                        const dayName = date.toLocaleDateString(userLocale, {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short"
-                        });
+                        const weekday = date.toLocaleDateString(userLocale, { weekday: "short" });
+                        const dayNumber = date.toLocaleDateString(userLocale, { day: "numeric" });
+                        const month = date.toLocaleDateString(userLocale, { month: "short" });
 
                         const maxTemp = Math.round(daily.temperature_2m_max[i]);
                         const minTemp = Math.round(daily.temperature_2m_min[i]);
                         const rain = daily.precipitation_probability_max[i];
                         const maxWindMph = Math.round(daily.wind_speed_10m_max[i]);
                         const maxGustMph = Math.round(daily.wind_gusts_10m_max[i]);
+                        const dominantWindDegrees = daily.wind_direction_10m_dominant ? daily.wind_direction_10m_dominant[i] : null;
+                        const dominantWindDirection = dominantWindDegrees === null ? null : compassDirection(dominantWindDegrees);
                         const desc = weatherDescription(daily.weather_code[i]);
 
                         const card = document.createElement("div");
                         card.className = "weather-day";
                         card.innerHTML = `
-                            <div class="weather-label">${dayName}</div>
-                            <div class="weather-main">${desc}</div>
-                            <div>${minTemp}–${maxTemp}°C</div>
-                            <div>Rain ${rain}%</div>
-                            <div>Wind ${maxWindMph} mph, gusts ${maxGustMph} mph</div>
+                            <div class="weather-day-head">
+                                <div class="weather-day-date" aria-hidden="true">
+                                    <span class="weather-day-date-weekday">${weekday}</span>
+                                    <span class="weather-day-date-number">${dayNumber}</span>
+                                    <span class="weather-day-date-month">${month}</span>
+                                </div>
+                                ${weatherIconMarkup(daily.weather_code[i], desc)}
+                                <div class="weather-day-summary">
+                                    <div class="weather-day-title">${desc}</div>
+                                    <div class="weather-temp-range" aria-label="Temperature range ${minTemp} to ${maxTemp} degrees Celsius">
+                                        <span class="weather-temp-low">${minTemp}°</span>
+                                        <span class="weather-temp-separator">–</span>
+                                        <span class="weather-temp-high">${maxTemp}°C</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="weather-day-stats">
+                                <div class="weather-stat">
+                                    <span class="weather-stat-label">Rain</span>
+                                    <span class="weather-stat-value">${rain}%</span>
+                                </div>
+                                <div class="weather-stat">
+                                    <span class="weather-stat-label">Wind</span>
+                                    <span class="weather-stat-value">${maxWindMph} mph</span>
+                                </div>
+                                <div class="weather-stat weather-stat-direction">
+                                    <span class="weather-stat-label">From</span>
+                                    <span class="weather-stat-value">${dominantWindDirection ? windDirectionMarkup(dominantWindDirection, dominantWindDegrees) : "—"}</span>
+                                </div>
+                                <div class="weather-stat">
+                                    <span class="weather-stat-label">Gusts</span>
+                                    <span class="weather-stat-value">${maxGustMph} mph</span>
+                                </div>
+                            </div>
                         `;
 
                         days.appendChild(card);
@@ -942,6 +1395,7 @@
                     });
                 })
                 .catch(() => {
+                    document.getElementById("weather-condition-heading").textContent = "";
                     document.getElementById("weather-now").textContent = "Unavailable";
                     document.getElementById("weather-wind").textContent = "Unavailable";
                     document.getElementById("weather-rain").textContent = "Unavailable";
