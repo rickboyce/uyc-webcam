@@ -5,7 +5,6 @@
     <title>UYC Webcam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -24,7 +23,6 @@
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-
     <style>
         :root {
             --uyc-blue: #0057a8;
@@ -40,7 +38,6 @@
             --border: #cfe0ef;
         }
 
-
         html, body {
             margin: 0;
             padding: 0;
@@ -50,14 +47,12 @@
             text-align: center;
         }
 
-
         header {
             padding: 1rem;
             background: linear-gradient(135deg, var(--uyc-blue-dark), var(--uyc-blue));
             border-bottom: 5px solid var(--uyc-yellow);
             box-shadow: 0 2px 12px rgba(0, 45, 90, 0.25);
         }
-
 
         .site-title {
             display: inline-flex;
@@ -74,14 +69,12 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
         }
 
-
         .site-logo {
             width: 62px;
             height: auto;
             display: block;
             filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
         }
-
 
         #webcam {
             width: 100%;
@@ -95,13 +88,11 @@
             box-sizing: border-box;
         }
 
-
         .note {
             font-size: 0.85rem;
             color: var(--muted);
             padding: 0.65rem 0.5rem 1rem 0.5rem;
         }
-
 
         .weather {
             max-width: 900px;
@@ -114,14 +105,12 @@
             box-shadow: 0 6px 18px rgba(21, 61, 98, 0.12);
         }
 
-
         .weather h2 {
             margin: 0 0 0.75rem 0;
             color: var(--uyc-blue-dark);
             font-size: 1.15rem;
             font-weight: 800;
         }
-
 
         .weather h2::after {
             content: "";
@@ -133,13 +122,11 @@
             border-radius: 999px;
         }
 
-
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.75rem;
         }
-
 
         .weather-grid > div,
         .weather-day,
@@ -151,13 +138,11 @@
             box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
         }
 
-
         .weather-label {
             color: var(--muted);
             font-size: 0.75rem;
             margin-bottom: 0.25rem;
         }
-
 
         .weather-main {
             color: var(--text);
@@ -165,12 +150,10 @@
             font-weight: 700;
         }
 
-
         .weather-hourly {
             margin-top: 0.75rem;
             text-align: left;
         }
-
 
         .weather-hours {
             display: flex;
@@ -185,17 +168,14 @@
             overscroll-behavior-inline: contain;
         }
 
-
         .weather-hours::-webkit-scrollbar {
             height: 10px;
         }
-
 
         .weather-hours::-webkit-scrollbar-track {
             background: var(--uyc-blue-light);
             border-radius: 999px;
         }
-
 
         .weather-hours::-webkit-scrollbar-thumb {
             background: linear-gradient(90deg, var(--uyc-blue), var(--uyc-blue-dark));
@@ -203,11 +183,9 @@
             border-radius: 999px;
         }
 
-
         .weather-hours::-webkit-scrollbar-thumb:hover {
             background: var(--uyc-blue-dark);
         }
-
 
         .weather-hour {
             flex: 0 0 auto;
@@ -218,19 +196,16 @@
             scroll-snap-align: start;
         }
 
-
         .weather-hour.is-now {
             border-color: var(--uyc-blue);
             box-shadow: inset 0 0 0 1px var(--uyc-blue), 0 2px 8px rgba(0, 87, 168, 0.15);
         }
-
 
         .weather-hour-top {
             color: var(--muted);
             font-size: 0.75rem;
             margin-bottom: 0.25rem;
         }
-
 
         .weather-hour-bottom {
             display: flex;
@@ -243,7 +218,6 @@
             line-height: 1.2;
         }
 
-
         .wind-speed {
             font-size: 1rem;
             font-weight: 850;
@@ -251,12 +225,10 @@
             white-space: nowrap;
         }
 
-
         .wind-unit {
             font-size: 0.72em;
             font-weight: 700;
         }
-
 
         .wind-gust {
             display: inline-block;
@@ -271,14 +243,12 @@
             white-space: nowrap;
         }
 
-
         .wind-direction {
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
             white-space: nowrap;
         }
-
 
         .wind-arrow {
             display: inline-block;
@@ -291,12 +261,10 @@
             flex: 0 0 auto;
         }
 
-
         .wind-arrow circle {
             fill: var(--uyc-yellow);
             filter: drop-shadow(0 1px 1px rgba(21, 61, 98, 0.18));
         }
-
 
         .wind-arrow path {
             fill: none;
@@ -307,11 +275,9 @@
             vector-effect: non-scaling-stroke;
         }
 
-
         .weather h2.forecast-heading {
             margin: 1.5rem 0 0.75rem 0;
         }
-
 
         .weather-days {
             display: grid;
@@ -320,14 +286,12 @@
             margin-top: 0.75rem;
         }
 
-
         .weather-links {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.75rem;
             margin-top: 0.75rem;
         }
-
 
         .weather-link {
             display: block;
@@ -341,7 +305,6 @@
             box-shadow: 0 2px 6px rgba(0, 87, 168, 0.2);
         }
 
-
         .weather-link:hover,
         .weather-link:focus {
             background: var(--uyc-blue-dark);
@@ -350,30 +313,25 @@
             outline-offset: 2px;
         }
 
-
         .weather-source {
             margin-top: 0.75rem;
             color: var(--muted);
             font-size: 0.75rem;
         }
 
-
         @media (max-width: 700px) {
             header {
                 padding: 0.75rem 0.5rem;
             }
-
 
             .site-title {
                 gap: 0.6rem;
                 padding: 0.35rem 0.8rem;
             }
 
-
             .site-logo {
                 width: 50px;
             }
-
 
             .weather-grid,
             .weather-days,
@@ -391,18 +349,14 @@
         </div>
     </header>
 
-
-    <img id="webcam" src="/webcam/latest.jpg" alt="Latest webcam image">
-
+    <img id="webcam" src="/var/webcam.jpg" alt="Latest webcam image">
 
     <div class="note">
-        Updates every 60 seconds. Latest image: <span id="timestamp">loading...</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
+        Updates every 60 seconds. Latest image: <span id="webcam-timestamp">(loading)</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
     </div>
-
 
     <section class="weather">
         <h2>Current Weather</h2>
-
 
         <div class="weather-grid">
             <div>
@@ -410,12 +364,10 @@
                 <div class="weather-main" id="weather-now">Loading...</div>
             </div>
 
-
             <div>
                 <div class="weather-label">Wind</div>
                 <div class="weather-main" id="weather-wind">Loading...</div>
             </div>
-
 
             <div>
                 <div class="weather-label">Rain</div>
@@ -423,17 +375,12 @@
             </div>
         </div>
 
-
         <div class="weather-hourly">
-            <div class="weather-hours" id="weather-hours">
-                <div class="weather-hour">Loading...</div>
-            </div>
+            <div class="weather-hours" id="weather-hours"></div>
         </div>
-
 
         <h2 class="forecast-heading">3 Day Forecast</h2>
         <div class="weather-days" id="weather-days"></div>
-
 
         <h2 class="forecast-heading">Weather Links</h2>
         <div class="weather-links" aria-label="Detailed weather forecast links">
@@ -442,9 +389,8 @@
             <a class="weather-link" href="https://www.glenriddingcybercafe.co.uk/weather-pbpier/" target="_blank" rel="noopener noreferrer">Pooley Bridge Weather Station</a>
         </div>
 
-
         <div class="weather-source">
-            Forecast from <a href="https://open-meteo.com/en/licence" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Updated periodically.
+            Forecast from <a href="https://open-meteo.com/en/licence" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Forecast updated at: <span id="weather-timestamp">(loading)</span>.
         </div>
     </section>
 
@@ -453,40 +399,39 @@
         // Webcam and weather refresh without full page reload.
         document.addEventListener("DOMContentLoaded", function () {
             const image = document.getElementById("webcam");
-            const timestamp = document.getElementById("timestamp");
+            const webcam_timestamp = document.getElementById("webcam-timestamp");
+            const weather_timestamp = document.getElementById("weather-timestamp");
 
             function webcamCacheKey() { return Math.floor(Date.now() / 60000); }
 
-            function refreshWebcam() {
-                const imageUrl = "/webcam/latest.jpg?m=" + webcamCacheKey();
-                image.src = imageUrl;
-
-                fetch(imageUrl, {
+            // Populate the last modified text whenever the webcam image is updated
+            image.onload = () => {
+                fetch(image.src, {
                     method: "HEAD",
                     cache: "no-cache"
                 })
-                    .then(response => {
-                        const lastModified = response.headers.get("Last-Modified");
+                .then(response => {
+                    const lastModified = response.headers.get("Last-Modified");
 
+                    if (!lastModified) {
+                        throw new Error("No Last-Modified header");
+                    }
 
-                        if (!lastModified) {
-                            throw new Error("No Last-Modified header");
-                        }
+                    const date = new Date(lastModified);
 
-
-                        const date = new Date(lastModified);
-
-
-                        timestamp.textContent = date.toLocaleString("en-GB", {
-                            dateStyle: "medium",
-                            timeStyle: "medium"
-                        });
-                    })
-                    .catch(() => {
-                        timestamp.textContent = "error";
+                    webcam_timestamp.textContent = date.toLocaleString("en-GB", {
+                        dateStyle: "medium",
+                        timeStyle: "medium"
                     });
-            }
+                })
+                .catch(() => {
+                    webcam_timestamp.textContent = "(error)";
+                });
+            };  
 
+            function refreshWebcam() {
+                image.src = "/var/webcam.jpg?m=" + webcamCacheKey();
+            }
 
             function weatherDescription(code) {
                 const descriptions = {
@@ -520,10 +465,8 @@
                     99: "Thunderstorm with heavy hail"
                 };
 
-
                 return descriptions[code] || "Unknown";
             }
-
 
             function compassDirection(degrees) {
                 const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
@@ -531,34 +474,27 @@
                 return directions[index];
             }
 
-
             function windDirectionMarkup(direction, degrees) {
                 const rotation = (degrees + 90) % 360;
 
-
                 return `<span class="wind-direction"><span>${direction}</span><svg class="wind-arrow" style="--wind-rotation: ${rotation}deg" viewBox="0 0 24 24" role="img" aria-label="Wind from ${direction}"><circle cx="12" cy="12" r="11"></circle><path d="M6 12h10M12 7l5 5-5 5"></path></svg></span>`;
             }
-
 
             function nearestHour(date) {
                 const rounded = new Date(date);
                 rounded.setMinutes(0, 0, 0);
 
-
                 if (date.getMinutes() >= 30) {
                     rounded.setHours(rounded.getHours() + 1);
                 }
 
-
                 return rounded;
             }
-
 
             function renderHourlyWind(data) {
                 const hourly = data.hourly;
                 const container = document.getElementById("weather-hours");
                 container.innerHTML = "";
-
 
                 const requiredFields = [
                     "time",
@@ -567,47 +503,37 @@
                     "wind_direction_10m"
                 ];
 
-
                 const missingFields = requiredFields.filter(field => !hourly || !hourly[field]);
-
 
                 if (missingFields.length > 0) {
                     container.innerHTML = `<div class="weather-hour">Hourly wind unavailable</div>`;
                     return;
                 }
 
-
                 const nowHour = nearestHour(new Date());
                 const startHour = new Date(nowHour);
                 startHour.setHours(startHour.getHours() - 1);
 
-
                 const endHour = new Date(nowHour);
                 endHour.setHours(endHour.getHours() + 6);
 
-
                 hourly.time.forEach((timeText, index) => {
                     const hourDate = new Date(timeText);
-
 
                     if (hourDate < startHour || hourDate > endHour) {
                         return;
                     }
 
-
                     const speedMph = Math.round(hourly.wind_speed_10m[index]);
                     const gustMph = Math.round(hourly.wind_gusts_10m[index]);
                     const direction = compassDirection(hourly.wind_direction_10m[index]);
 
-
                     const isNow = hourDate.getTime() === nowHour.getTime();
-
 
                     const label = hourDate.toLocaleTimeString("en-GB", {
                         hour: "2-digit",
                         minute: "2-digit"
                     });
-
 
                     const card = document.createElement("div");
                     card.className = isNow ? "weather-hour is-now" : "weather-hour";
@@ -616,29 +542,25 @@
                         <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust ${gustMph}</span></div>
                     `;
 
-
                     container.appendChild(card);
                 });
-
 
                 if (container.children.length === 0) {
                     container.innerHTML = `<div class="weather-hour">Hourly wind unavailable</div>`;
                 }
             }
 
-
             function refreshWeather() {
-                fetch("/weather/weather.json", { cache: "no-cache" })
-                    .then(response => {
+                fetch("/var/weather.json", { cache: "no-cache" })
+                .then(response => {
                     if (!response.ok) {
                         throw new Error("Weather fetch failed");
                     }
+
                     return response.json();
-                })
-                .then(data => {
+                }).then(data => {
                     const current = data.current;
                     const daily = data.daily;
-
 
                     const temp = Math.round(current.temperature_2m);
                     const feels = Math.round(current.apparent_temperature);
@@ -647,25 +569,19 @@
                     const windDir = compassDirection(current.wind_direction_10m);
                     const rainToday = daily.precipitation_probability_max[0];
 
-
                     document.getElementById("weather-now").textContent =
                         `${temp}°C, feels ${feels}°C — ${weatherDescription(current.weather_code)}`;
-
 
                     document.getElementById("weather-wind").innerHTML =
                         `${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph} mph, gusts ${gustMph} mph`;
 
-
                     document.getElementById("weather-rain").textContent =
                         `${rainToday}% max chance today`;
 
-
                     renderHourlyWind(data);
-
 
                     const days = document.getElementById("weather-days");
                     days.innerHTML = "";
-
 
                     for (let i = 0; i < daily.time.length; i++) {
                         const date = new Date(daily.time[i] + "T12:00:00");
@@ -675,14 +591,12 @@
                             month: "short"
                         });
 
-
                         const maxTemp = Math.round(daily.temperature_2m_max[i]);
                         const minTemp = Math.round(daily.temperature_2m_min[i]);
                         const rain = daily.precipitation_probability_max[i];
                         const maxWindMph = Math.round(daily.wind_speed_10m_max[i]);
                         const maxGustMph = Math.round(daily.wind_gusts_10m_max[i]);
                         const desc = weatherDescription(daily.weather_code[i]);
-
 
                         const card = document.createElement("div");
                         card.className = "weather-day";
@@ -694,30 +608,34 @@
                             <div>Wind ${maxWindMph} mph, gusts ${maxGustMph} mph</div>
                         `;
 
-
                         days.appendChild(card);
                     }
-                })
-                    .catch(() => {
-                        document.getElementById("weather-now").textContent = "Unavailable";
-                        document.getElementById("weather-wind").textContent = "Unavailable";
-                        document.getElementById("weather-rain").textContent = "Unavailable";
-                        document.getElementById("weather-hours").innerHTML =
-                            `<div class="weather-hour">Hourly wind unavailable</div>`;
+
+                    // Finally set the timestamp
+                    const date = new Date(current.time);
+                    weather_timestamp.textContent = date.toLocaleString("en-GB", {
+                        dateStyle: "medium",
+                        timeStyle: "medium"
                     });
+                })
+                .catch(() => {
+                    document.getElementById("weather-now").textContent = "Unavailable";
+                    document.getElementById("weather-wind").textContent = "Unavailable";
+                    document.getElementById("weather-rain").textContent = "Unavailable";
+                    document.getElementById("weather-hours").innerHTML = "";
+                    document.getElementById("weather-days").innerHTML = "";
+                });
             }
 
+            // Load the weather data 
+            // Note - we don't need to load the webcam image initially as it was loaded already by the img tag
+            refreshWeather()
 
-            function refreshPageData() {
-                refreshWebcam();
-                refreshWeather();
-            }
-
-
-            refreshPageData();
-            setInterval(refreshPageData, 60000);
+            // Reload webcam image every 60 seconds
+            setInterval(refreshWebcam, 60100);
+            // Reload weather data every 5 minutes
+            setInterval(refreshWeather, 300000);
         });
     </script>
 </body>
 </html>
-

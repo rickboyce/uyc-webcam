@@ -12,5 +12,5 @@
 /container/envs/add name=uyc-webcam-env key=RCLONE_CONFIG_R2_ENDPOINT value="https://ACCOUNT_ID.r2.cloudflarestorage.com"
 
 /container/envs/add name=uyc-webcam-env key=R2_BUCKET value="uyc-webcam"
-/container/envs/add name=uyc-webcam-env key=R2_CAMERA_OBJECT value="webcam/latest.jpg"
-/container/envs/add name=uyc-webcam-env key=R2_WEATHER_OBJECT value="weather/weather.json"
+/container/envs/add name=uyc-webcam-env key=R2_CAMERA_OBJECT value="var/webcam.jpg"
+/container/envs/add name=uyc-webcam-env key=R2_WEATHER_OBJECT value="var/weather.json"
