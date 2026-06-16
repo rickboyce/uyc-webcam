@@ -75,7 +75,7 @@ fetch_calendar() {
         if [ -s "$CALENDAR_TMP_FILE" ]; then
             mv "$CALENDAR_TMP_FILE" "$CALENDAR_FILE"
             echo "$(date -Iseconds) webcam-capture: calendar fetch successful"
-            upload_file_to_r2 "$CALENDAR_FILE" "{$R2_CALENDAR_OBJECT:-}" "calendar"
+            upload_file_to_r2 "$CALENDAR_FILE" "${R2_CALENDAR_OBJECT:-}" "calendar"
         else
             rm -f "$CALENDAR_TMP_FILE"
             echo "$(date -Iseconds) webcam-capture: calendar fetch failed - empty JSON file" >&2
@@ -85,7 +85,6 @@ fetch_calendar() {
         echo "$(date -Iseconds) webcam-capture: calendar fetch failed - Python conversion error" >&2
     fi
 }
-
 
 upload_file_to_r2() {
     SRC_FILE="$1"
