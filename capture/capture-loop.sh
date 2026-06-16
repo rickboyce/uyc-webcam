@@ -23,7 +23,7 @@ CALENDAR_TMP_FILE="${OUTPUT_DIR}/events-working.json"
 : "${LAT:?LAT environment variable is required}"
 : "${LON:?LON environment variable is required}"
 
-WEATHER_URL="${WEATHER_URL:-https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Europe%2FLondon&forecast_days=3&wind_speed_unit=mph}"
+WEATHER_URL="${WEATHER_URL:-https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Europe%2FLondon&forecast_days=4&wind_speed_unit=mph}"
 
 R2_UPLOAD_ENABLED="${R2_UPLOAD_ENABLED:-true}"
 R2_REMOTE_NAME="${R2_REMOTE_NAME:-r2}"

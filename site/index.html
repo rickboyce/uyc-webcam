@@ -1469,7 +1469,7 @@
                     const days = document.getElementById("weather-days");
                     days.innerHTML = "";
 
-                    for (let i = 0; i < daily.time.length; i++) {
+                    for (let i = 1; i < daily.time.length && i <= 3; i++) {
                         const date = new Date(daily.time[i] + "T12:00:00");
                         const weekday = date.toLocaleDateString(userLocale, { weekday: "short" });
                         const dayNumber = date.toLocaleDateString(userLocale, { day: "numeric" });
