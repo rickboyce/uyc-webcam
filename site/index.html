@@ -191,8 +191,8 @@
 
         .event-card {
             display: grid;
-            grid-template-columns: minmax(4.4rem, auto) 1fr;
-            gap: 0.75rem;
+            grid-template-columns: auto 1fr;
+            gap: 0.7rem;
             align-items: start;
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -201,13 +201,21 @@
             box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
         }
 
+        .event-when {
+            display: grid;
+            gap: 0.35rem;
+            align-content: start;
+        }
+
         .event-date {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 4.4rem;
-            padding: 0.45rem 0.35rem;
+            box-sizing: border-box;
+            width: 4.75rem;
+            min-width: 4.75rem;
+            padding: 0.42rem 0.34rem;
             background: var(--uyc-blue-light);
             border: 1px solid var(--border);
             border-radius: 0.45rem;
@@ -215,6 +223,21 @@
             font-weight: 800;
             line-height: 1.1;
             text-align: center;
+        }
+
+        .event-time {
+            display: inline-block;
+            box-sizing: border-box;
+            padding: 0.18rem 0.44rem;
+            background: var(--uyc-yellow-soft);
+            border: 1px solid var(--uyc-yellow);
+            border-radius: 0.45rem;
+            color: var(--uyc-blue-dark);
+            font-size: 0.72rem;
+            font-weight: 900;
+            line-height: 1.15;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .event-date-day {
@@ -234,12 +257,24 @@
             letter-spacing: 0.04em;
         }
 
+        .event-content {
+            min-width: 0;
+        }
+
         .event-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.28rem 0.45rem;
             margin: 0;
             color: var(--text);
             font-size: 1rem;
             font-weight: 800;
-            line-height: 1.25;
+            line-height: 1.22;
+        }
+
+        .event-title-text {
+            min-width: 0;
         }
 
         .event-meta {
@@ -250,10 +285,10 @@
         }
 
         .event-description {
-            margin-top: 0.35rem;
+            margin-top: 0.28rem;
             color: var(--muted);
-            font-size: 0.85rem;
-            line-height: 1.35;
+            font-size: 0.84rem;
+            line-height: 1.32;
         }
 
         .events-source {
@@ -832,16 +867,17 @@
             }
 
             .event-card {
-                grid-template-columns: 1fr;
-                text-align: center;
+                grid-template-columns: auto 1fr;
+                gap: 0.55rem;
+                text-align: left;
             }
 
             .event-date {
-                width: fit-content;
-                min-width: 5rem;
-                margin: 0 auto;
+                width: 4.25rem;
+                min-width: 4.25rem;
+                padding: 0.38rem 0.3rem;
             }
-
+            
             .weather-day {
                 display: grid;
                 grid-template-columns: auto minmax(0, 1fr);
@@ -1342,14 +1378,15 @@
                             const card = document.createElement("article");
                             card.className = "event-card";
                             card.innerHTML = `
-                                <div class="event-date" aria-hidden="true">
-                                    <span class="event-date-day">${escapeHtml(badge.day)}</span>
-                                    <span class="event-date-number">${escapeHtml(badge.number)}</span>
-                                    <span class="event-date-month">${escapeHtml(badge.month)}</span>
+                                <div class="event-when" aria-label="${escapeHtml(formatEventDateRange(event))}">
+                                    <div class="event-date" aria-hidden="true">
+                                        <span class="event-date-day">${escapeHtml(badge.day)}</span>
+                                        <span class="event-date-number">${escapeHtml(badge.number)}</span>
+                                        <span class="event-date-month">${escapeHtml(badge.month)}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="event-title">${escapeHtml(event.title || "Untitled event")}</h3>
-                                    <div class="event-meta">${escapeHtml(formatEventDateRange(event))} · ${escapeHtml(formatEventTime(event))}</div>
+                                <div class="event-content">
+                                    <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span><span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
                                     ${description ? `<div class="event-description">${escapeHtml(description)}</div>` : ""}
                                 </div>
                             `;
