@@ -154,6 +154,114 @@
             box-shadow: 0 6px 18px rgba(21, 61, 98, 0.12);
         }
 
+        .events {
+            max-width: 900px;
+            margin: 0 auto 1.25rem auto;
+            padding: 1rem;
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-top: 5px solid var(--uyc-yellow);
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 18px rgba(21, 61, 98, 0.12);
+        }
+
+        .events h2 {
+            margin: 0 0 0.75rem 0;
+            color: var(--uyc-blue-dark);
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .events h2::after {
+            content: "";
+            display: block;
+            width: 3rem;
+            height: 3px;
+            margin: 0.35rem auto 0 auto;
+            background: var(--uyc-yellow);
+            border-radius: 999px;
+        }
+
+        .events-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .event-card {
+            display: grid;
+            grid-template-columns: minmax(4.4rem, auto) 1fr;
+            gap: 0.75rem;
+            align-items: start;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
+        }
+
+        .event-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 4.4rem;
+            padding: 0.45rem 0.35rem;
+            background: var(--uyc-blue-light);
+            border: 1px solid var(--border);
+            border-radius: 0.45rem;
+            color: var(--uyc-blue-dark);
+            font-weight: 800;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .event-date-day {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .event-date-number {
+            font-size: 1.45rem;
+            letter-spacing: -0.04em;
+        }
+
+        .event-date-month {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .event-title {
+            margin: 0;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .event-meta {
+            margin-top: 0.25rem;
+            color: var(--uyc-blue-dark);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .event-description {
+            margin-top: 0.35rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.35;
+        }
+
+        .events-source {
+            margin-top: 0.75rem;
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
         .weather h2 {
             margin: 0 0 0.75rem 0;
             color: var(--uyc-blue-dark);
@@ -388,6 +496,17 @@
             .weather-links {
                 grid-template-columns: 1fr;
             }
+
+            .event-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .event-date {
+                width: fit-content;
+                min-width: 5rem;
+                margin: 0 auto;
+            }
         }
     </style>
 </head>
@@ -396,7 +515,7 @@
         <div class="site-title">
             <img class="site-logo" src="/assets/header-logo.png" alt="UYC Pegasus">
             <span class="site-title-main">UYC Webcam</span>
-            <span class="site-strapline">wind, weather & webcam</span>
+            <span class="site-strapline">webcam, weather, wind & whats-on</span>
         </div>
     </header>
 
@@ -445,6 +564,16 @@
         </div>
     </section>
 
+    <section class="events">
+        <h2>What's On at UYC</h2>
+        <div class="events-list" id="events-list">
+            <div class="event-card">Loading events...</div>
+        </div>
+        <div class="events-source">
+            <a href="https://ullswateryachtclub.org/events?upcoming=true">Ullswater Yacht Club Calendar</a>. Updated at: <span id="events-timestamp">(loading)</span>.
+        </div>
+    </section>
+
 
     <script nonce="Mzc0MDQ1NjgzMCwyNTU0MTYyMjQz">
         // Webcam and weather refresh without full page reload.
@@ -452,6 +581,8 @@
             const image = document.getElementById("webcam");
             const webcam_timestamp = document.getElementById("webcam-timestamp");
             const weather_timestamp = document.getElementById("weather-timestamp");
+            const events_timestamp = document.getElementById("events-timestamp");
+            const userLocale = navigator.language || "en-GB";
 
             function webcamCacheKey() { return Math.floor(Date.now() / 60000); }
 
@@ -470,7 +601,7 @@
 
                     const date = new Date(lastModified);
 
-                    webcam_timestamp.textContent = date.toLocaleString("en-GB", {
+                    webcam_timestamp.textContent = date.toLocaleString(userLocale, {
                         dateStyle: "medium",
                         timeStyle: "medium"
                     });
@@ -542,6 +673,147 @@
                 return rounded;
             }
 
+            function parseDateOnly(dateText) {
+                const [year, month, day] = dateText.split("-").map(Number);
+                return new Date(year, month - 1, day, 12, 0, 0);
+            }
+
+            function subtractOneDay(date) {
+                const copy = new Date(date);
+                copy.setDate(copy.getDate() - 1);
+                return copy;
+            }
+
+            function formatShortDate(date) {
+                return date.toLocaleDateString(userLocale, {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short"
+                });
+            }
+
+            function formatEventDateRange(event) {
+                const start = event.all_day ? parseDateOnly(event.start) : new Date(event.start);
+
+                if (!event.end) {
+                    return formatShortDate(start);
+                }
+
+                const end = event.all_day ? subtractOneDay(parseDateOnly(event.end)) : new Date(event.end);
+
+                if (start.toDateString() === end.toDateString()) {
+                    return formatShortDate(start);
+                }
+
+                return `${formatShortDate(start)} – ${formatShortDate(end)}`;
+            }
+
+            function formatEventTime(event) {
+                if (event.all_day) {
+                    return "All day";
+                }
+
+                const start = new Date(event.start);
+                const startText = start.toLocaleTimeString(userLocale, {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+
+                if (!event.end) {
+                    return startText;
+                }
+
+                const end = new Date(event.end);
+                const endText = end.toLocaleTimeString(userLocale, {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+
+                return `${startText}–${endText}`;
+            }
+
+            function eventDateBadge(event) {
+                const date = event.all_day ? parseDateOnly(event.start) : new Date(event.start);
+
+                return {
+                    day: date.toLocaleDateString(userLocale, { weekday: "short" }),
+                    number: date.toLocaleDateString(userLocale, { day: "numeric" }),
+                    month: date.toLocaleDateString(userLocale, { month: "short" })
+                };
+            }
+
+            function escapeHtml(value) {
+                return String(value || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            function truncateText(value, maxLength) {
+                if (!value || value.length <= maxLength) {
+                    return value || "";
+                }
+
+                return value.slice(0, maxLength - 1).trimEnd() + "…";
+            }
+
+            function refreshEvents() {
+                const eventsList = document.getElementById("events-list");
+
+                fetch("/var/events7day.json", { cache: "no-cache" })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Events fetch failed");
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    eventsList.innerHTML = "";
+
+                    if (!data.events || data.events.length === 0) {
+                        eventsList.innerHTML = `<div class="event-card">No public events listed for the next 7 days.</div>`;
+                    } else {
+                        data.events.forEach(event => {
+                            const badge = eventDateBadge(event);
+                            const description = truncateText(event.description, 220);
+                            const card = document.createElement("article");
+                            card.className = "event-card";
+                            card.innerHTML = `
+                                <div class="event-date" aria-hidden="true">
+                                    <span class="event-date-day">${escapeHtml(badge.day)}</span>
+                                    <span class="event-date-number">${escapeHtml(badge.number)}</span>
+                                    <span class="event-date-month">${escapeHtml(badge.month)}</span>
+                                </div>
+                                <div>
+                                    <h3 class="event-title">${escapeHtml(event.title || "Untitled event")}</h3>
+                                    <div class="event-meta">${escapeHtml(formatEventDateRange(event))} · ${escapeHtml(formatEventTime(event))}</div>
+                                    ${description ? `<div class="event-description">${escapeHtml(description)}</div>` : ""}
+                                </div>
+                            `;
+
+                            eventsList.appendChild(card);
+                        });
+                    }
+
+                    if (data.updated_at) {
+                        const date = new Date(data.updated_at);
+                        events_timestamp.textContent = date.toLocaleString(userLocale, {
+                            dateStyle: "medium",
+                            timeStyle: "medium"
+                        });
+                    } else {
+                        events_timestamp.textContent = "(unknown)";
+                    }
+                })
+                .catch(() => {
+                    eventsList.innerHTML = `<div class="event-card">Events unavailable</div>`;
+                    events_timestamp.textContent = "(error)";
+                });
+            }
+
             function renderHourlyWind(data) {
                 const hourly = data.hourly;
                 const container = document.getElementById("weather-hours");
@@ -581,7 +853,7 @@
 
                     const isNow = hourDate.getTime() === nowHour.getTime();
 
-                    const label = hourDate.toLocaleTimeString("en-GB", {
+                    const label = hourDate.toLocaleTimeString(userLocale, {
                         hour: "2-digit",
                         minute: "2-digit"
                     });
@@ -636,7 +908,7 @@
 
                     for (let i = 0; i < daily.time.length; i++) {
                         const date = new Date(daily.time[i] + "T12:00:00");
-                        const dayName = date.toLocaleDateString("en-GB", {
+                        const dayName = date.toLocaleDateString(userLocale, {
                             weekday: "short",
                             day: "numeric",
                             month: "short"
@@ -664,7 +936,7 @@
 
                     // Finally set the timestamp
                     const date = new Date(current.time);
-                    weather_timestamp.textContent = date.toLocaleString("en-GB", {
+                    weather_timestamp.textContent = date.toLocaleString(userLocale, {
                         dateStyle: "medium",
                         timeStyle: "medium"
                     });
@@ -678,14 +950,17 @@
                 });
             }
 
-            // Load the weather data 
+            // Load the weather & events data 
             // Note - we don't need to load the webcam image initially as it was loaded already by the img tag
-            refreshWeather()
+            refreshWeather();
+            refreshEvents();
 
             // Reload webcam image every 60 seconds
             setInterval(refreshWebcam, 60100);
             // Reload weather data every 5 minutes
             setInterval(refreshWeather, 300000);
+            // Reload events every 30 minutes
+            setInterval(refreshEvents, 1800000);
         });
     </script>
 </body>
