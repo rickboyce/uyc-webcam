@@ -48,32 +48,81 @@
         }
 
         header {
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--uyc-blue-dark), var(--uyc-blue));
+            position: relative;
+            overflow: hidden;
+            padding: 0.9rem 1rem;
+            background:
+                radial-gradient(circle at 18% 20%, rgba(242, 207, 34, 0.24), transparent 18rem),
+                linear-gradient(135deg, var(--uyc-blue-dark), var(--uyc-blue));
             border-bottom: 5px solid var(--uyc-yellow);
             box-shadow: 0 2px 12px rgba(0, 45, 90, 0.25);
         }
 
+        header::before {
+            content: "";
+            position: absolute;
+            inset: auto -5% -22px -5%;
+            height: 44px;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.24), transparent 52%),
+                radial-gradient(ellipse at 60% 0%, rgba(255, 255, 255, 0.18), transparent 56%),
+                radial-gradient(ellipse at 90% 0%, rgba(255, 255, 255, 0.2), transparent 50%);
+            opacity: 0.95;
+            pointer-events: none;
+        }
+
         .site-title {
-            display: inline-flex;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "logo title"
+                "logo strapline";
             align-items: center;
             justify-content: center;
-            gap: 0.85rem;
-            padding: 0.35rem 1rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
+            column-gap: 0.85rem;
+            width: fit-content;
+            margin: 0 auto;
             color: #fff;
-            font-size: clamp(1.35rem, 4vw, 2rem);
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+            text-align: left;
         }
 
         .site-logo {
-            width: 62px;
-            height: auto;
+            grid-area: logo;
+            width: 58px;
+            height: 58px;
             display: block;
-            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+            border-radius: 1rem;
+            box-shadow: 0 3px 10px rgba(0, 25, 55, 0.28);
+        }
+
+        .site-title-main {
+            grid-area: title;
+            font-size: clamp(1.55rem, 4.4vw, 2.35rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.035em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+
+        .site-title-main::after {
+            content: " • LIVE";
+            color: var(--uyc-yellow);
+            font-size: 0.38em;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            vertical-align: 0.45em;
+            text-shadow: none;
+        }
+
+        .site-strapline {
+            grid-area: strapline;
+            margin-top: 0.2rem;
+            color: rgba(255, 255, 255, 0.86);
+            font-size: clamp(0.78rem, 2.6vw, 0.92rem);
+            font-weight: 700;
+            letter-spacing: 0.04em;
         }
 
         #webcam {
@@ -321,16 +370,17 @@
 
         @media (max-width: 700px) {
             header {
-                padding: 0.75rem 0.5rem;
+                padding: 0.7rem 0.6rem;
             }
 
             .site-title {
-                gap: 0.6rem;
-                padding: 0.35rem 0.8rem;
+                column-gap: 0.65rem;
             }
 
             .site-logo {
-                width: 50px;
+                width: 48px;
+                height: 48px;
+                border-radius: 0.8rem;
             }
 
             .weather-grid,
@@ -344,8 +394,9 @@
 <body>
     <header>
         <div class="site-title">
-            <img class="site-logo" src="/assets/uyc-logo.png" alt="UYC logo">
-            <span>UYC Webcam</span>
+            <img class="site-logo" src="/assets/header-logo.png" alt="UYC Pegasus">
+            <span class="site-title-main">UYC Webcam</span>
+            <span class="site-strapline">wind, weather & webcam</span>
         </div>
     </header>
 
