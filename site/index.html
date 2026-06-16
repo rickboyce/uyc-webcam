@@ -291,6 +291,27 @@
             line-height: 1.32;
         }
 
+        .event-description-toggle {
+            cursor: pointer;
+        }
+
+        .event-description-toggle:focus-visible {
+            outline: 3px solid var(--uyc-yellow);
+            outline-offset: 3px;
+            border-radius: 0.25rem;
+        }
+
+        .event-description-more {
+            color: var(--uyc-blue-dark);
+            font-size: 0.75rem;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .event-description-more::before {
+            content: " ";
+        }
+
         .events-source {
             margin-top: 0.75rem;
             color: var(--muted);
@@ -1374,7 +1395,9 @@
                     } else {
                         data.events.forEach(event => {
                             const badge = eventDateBadge(event);
-                            const description = truncateText(event.description, 220);
+                            const fullDescription = event.description || "";
+                            const description = truncateText(fullDescription, 220);
+                            const isTruncatedDescription = fullDescription.length > description.length;
                             const card = document.createElement("article");
                             card.className = "event-card";
                             card.innerHTML = `
@@ -1387,12 +1410,44 @@
                                 </div>
                                 <div class="event-content">
                                     <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span><span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
-                                    ${description ? `<div class="event-description">${escapeHtml(description)}</div>` : ""}
+                                    ${fullDescription ? `<div class="event-description${isTruncatedDescription ? " event-description-toggle" : ""}"${isTruncatedDescription ? ` role="button" tabindex="0" aria-expanded="false" data-short="${escapeHtml(description)}" data-full="${escapeHtml(fullDescription)}"` : ""}>${escapeHtml(description)}${isTruncatedDescription ? `<span class="event-description-more">Show more</span>` : ""}</div>` : ""}
                                 </div>
                             `;
 
+                            // Add toggle handler for truncated descriptions
+                            const descriptionToggle = card.querySelector(".event-description-toggle");
+                            if (descriptionToggle) {
+                                const renderDescription = expanded => {
+                                    descriptionToggle.textContent = expanded ? descriptionToggle.dataset.full : descriptionToggle.dataset.short;
+
+                                    const more = document.createElement("span");
+                                    more.className = "event-description-more";
+                                    more.textContent = expanded ? "Show less" : "More";
+                                    descriptionToggle.appendChild(more);
+
+                                    descriptionToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+                                };
+
+                                const toggleDescription = () => {
+                                    renderDescription(descriptionToggle.getAttribute("aria-expanded") !== "true");
+                                };
+
+                                descriptionToggle.addEventListener("click", event => {
+                                    event.stopPropagation();
+                                    toggleDescription();
+                                });
+
+                                descriptionToggle.addEventListener("keydown", event => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        toggleDescription();
+                                    }
+                                });
+                            }
+
                             eventsList.appendChild(card);
                         });
+
                     }
 
                     if (data.updated_at) {
