@@ -327,6 +327,22 @@
             filter: drop-shadow(0 2px 3px rgba(21, 61, 98, 0.16));
         }
 
+        .wind-force-badge {
+            position: absolute;
+            top: 3.35rem;
+            right: 0.78rem;
+            width: 2.6rem;
+            color: var(--muted);
+            font-size: 0.62rem;
+            font-weight: 850;
+            line-height: 1;
+            letter-spacing: 0.06em;
+            text-align: center;
+            text-transform: uppercase;
+            opacity: 0.72;
+            pointer-events: none;
+        }
+
         .weather-card-temperature,
         .weather-card-wind,
         .weather-card-rain {
@@ -1136,13 +1152,18 @@
             }
 
             function meteoconMarkup(iconName, description) {
-                return `<img class="weather-condition-icon" src="/assets/meteocons/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+                return `<img class="weather-condition-icon" src="https://cdn.meteocons.com/3.0.0-next.10/svg/flat/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+            }
+
+            function windIconMarkup(iconName, description, beaufortForce) {
+                return `${meteoconMarkup(iconName, description)}<span class="wind-force-badge" aria-hidden="true">F${beaufortForce}</span>`;
             }
 
             function weatherIconMarkup(code, description) {
                 return meteoconMarkup(weatherIconName(code), description);
             }
 
+            
             function beaufortScaleFromMph(mph) {
                 if (mph < 1) return 0;
                 if (mph < 4) return 1;
@@ -1159,8 +1180,22 @@
                 return 12;
             }
 
-            function beaufortIconName(mph) {
-                return `wind-beaufort-${beaufortScaleFromMph(mph)}`;
+            function windsockIconName(mph) {
+                // Keep this deliberately simple for a quick visual sailing read:
+                // calm: Beaufort 0-1, weak: Beaufort 2-3, moderate: Beaufort 4-5, full: Beaufort 6+
+                if (mph < 4) {
+                    return "windsock-calm";
+                }
+
+                if (mph < 13) {
+                    return "windsock-weak";
+                }
+
+                if (mph < 25) {
+                    return "windsock-moderate";
+                }
+
+                return "windsock";
             }
 
             function temperatureIconName(celsius) {
@@ -1424,7 +1459,7 @@
                         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}°C</span><span class="current-detail">Feels ${feels}°C</span>`;
 
                     document.getElementById("weather-wind").innerHTML =
-                        `${meteoconMarkup(beaufortIconName(windMph), `Beaufort force ${beaufortScaleFromMph(windMph)}`)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
+                        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortScaleFromMph(windMph)}`, beaufortScaleFromMph(windMph))}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
 
                     document.getElementById("weather-rain").innerHTML =
                         `${weatherIconMarkup(current.weather_code, currentWeatherDescription)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
