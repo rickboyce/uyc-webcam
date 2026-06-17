@@ -6,6 +6,10 @@
 *secrets*
 *.key
 
+# Worker deploy secrets
+worker-secrets.json
+workers/**/worker-secrets.json
+
 # RouterOS exports may contain credentials
 *.backup
 *.rsc.private
