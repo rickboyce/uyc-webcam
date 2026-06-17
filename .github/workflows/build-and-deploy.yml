@@ -132,7 +132,7 @@ jobs:
             --retry 3 \
             --request POST \
             --header "Authorization: Bearer ${TEST_WEATHER_REFRESH_TOKEN}" \
-            "${TEST_WEATHER_REFRESH_URL}"
+            "${TEST_WEATHER_REFRESH_URL}/refresh"
         env:
           TEST_WEATHER_REFRESH_TOKEN: ${{ secrets.TEST_WEATHER_REFRESH_TOKEN }}
           TEST_WEATHER_REFRESH_URL: ${{ secrets.TEST_WEATHER_REFRESH_URL }}
