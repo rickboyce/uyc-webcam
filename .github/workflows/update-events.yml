@@ -2,11 +2,9 @@ name: Update events data
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - test
-
   schedule:
     - cron: "7 * * * *"
 

@@ -2,11 +2,9 @@ name: Update weather data
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - test
-
   schedule:
     - cron: "16/15 * * * *"
 
