@@ -99,3 +99,27 @@ jobs:
           file: ./capture/Dockerfile
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+
+  deploy-weather-worker:
+    name: Deploy weather Worker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set Worker deployment environment
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "test" ]; then
+            echo "WRANGLER_COMMAND=deploy -e test" >> "$GITHUB_ENV"
+          else
+            echo "WRANGLER_COMMAND=deploy" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_WORKER_ACCOUNT_ID }}
+          workingDirectory: workers/weather-refresh
+          command: ${{ env.WRANGLER_COMMAND }}
