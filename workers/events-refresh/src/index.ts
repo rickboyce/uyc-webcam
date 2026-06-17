@@ -29,6 +29,14 @@ type EventRecord = {
   url?: string;
   uid?: string;
   status?: string;
+
+  multi_day?: boolean;
+  occurrence_date?: string;
+  original_start?: string;
+  original_end?: string;
+
+  event_group_id?: string;
+  event_instance_id?: string;
 };
 
 export default {
@@ -107,13 +115,14 @@ async function updateEvents(env: Env): Promise<void> {
     }
   );
 
-  console.log(`[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} events`);
+  console.log(`[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`);
 }
 
 function convertIcsTextToJson(icsText: string, sourceUrl: string) {
   const lines = unfoldIcsLines(icsText);
 
   const nowLocalParts = getDatePartsInTimeZone(new Date(), LOCAL_TZ);
+
   const windowStart = zonedDateTimeToUtc(
     nowLocalParts.year,
     nowLocalParts.month,
@@ -158,7 +167,7 @@ function convertIcsTextToJson(icsText: string, sourceUrl: string) {
           status !== "CANCELLED" &&
           eventOverlapsWindow(currentEvent, windowStart, windowEnd)
         ) {
-          events.push(currentEvent);
+          events.push(...expandEventAcrossDays(currentEvent, windowStart, windowEnd));
         }
       }
 
@@ -194,7 +203,15 @@ function convertIcsTextToJson(icsText: string, sourceUrl: string) {
     }
   }
 
-  events.sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+  events.sort((a, b) => {
+    const startComparison = (a.start || "").localeCompare(b.start || "");
+
+    if (startComparison !== 0) {
+      return startComparison;
+    }
+
+    return (a.title || "").localeCompare(b.title || "");
+  });
 
   return {
     schema_version: 1,
@@ -403,13 +420,200 @@ function eventOverlapsWindow(
 
   if (event.all_day) {
     if (!end) {
-      end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      end = addLocalDaysToUtc(start, 1);
     }
   } else if (!end) {
     end = start;
   }
 
   return start < windowEnd && end > windowStart;
+}
+
+function expandEventAcrossDays(
+  event: EventRecord,
+  windowStart: Date,
+  windowEnd: Date
+): EventRecord[] {
+  const start = parseEventDateTime(event.start);
+
+  if (!start) {
+    return [];
+  }
+
+  let end = parseEventDateTime(event.end);
+
+  if (event.all_day) {
+    if (!end) {
+      end = addLocalDaysToUtc(start, 1);
+    }
+  } else if (!end) {
+    end = start;
+  }
+
+  if (end <= start) {
+    end = new Date(start.getTime() + 1);
+  }
+
+  if (!(start < windowEnd && end > windowStart)) {
+    return [];
+  }
+
+  const effectiveStart = maxDate(start, windowStart);
+  const effectiveEnd = minDate(end, windowEnd);
+
+  // DTEND is exclusive, so the last displayed day is determined from the instant
+  // immediately before the effective end.
+  const lastInstant = new Date(effectiveEnd.getTime() - 1);
+
+  const firstDay = localDateKey(effectiveStart);
+  const lastDay = localDateKey(lastInstant);
+  const days = enumerateLocalDates(firstDay, lastDay);
+
+  const originalStart = event.start;
+  const originalEnd = event.end;
+  const isMultiDay = days.length > 1;
+
+  const baseEventForId: EventRecord = {
+    ...event,
+    original_start: originalStart,
+    original_end: originalEnd
+  };
+
+  const eventGroupId = getEventGroupId(baseEventForId);
+
+  return days.map((day) => {
+    const nextDay = addDaysToDateString(day, 1);
+
+    const dayStart = localDateStringToUtc(day);
+    const dayEnd = localDateStringToUtc(nextDay);
+
+    const segmentStart = maxDate(start, dayStart, windowStart);
+    const segmentEnd = minDate(end, dayEnd, windowEnd);
+
+    const expanded: EventRecord = {
+      ...event,
+      multi_day: isMultiDay,
+      occurrence_date: day,
+      original_start: originalStart,
+      original_end: originalEnd,
+      event_group_id: eventGroupId,
+      event_instance_id: `${eventGroupId}:${day}`
+    };
+
+    if (event.all_day) {
+      expanded.start = day;
+      expanded.end = nextDay;
+      expanded.all_day = true;
+    } else {
+      expanded.start = toIsoZ(segmentStart);
+      expanded.end = toIsoZ(segmentEnd);
+      expanded.all_day = false;
+    }
+
+    return expanded;
+  });
+}
+
+function getEventGroupId(event: EventRecord): string {
+  if (event.uid) {
+    return event.uid;
+  }
+
+  return stableId(
+    [
+      event.title || "",
+      event.original_start || event.start || "",
+      event.original_end || event.end || "",
+      event.location || ""
+    ].join("|")
+  );
+}
+
+function stableId(value: string): string {
+  let hash = 2166136261;
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return `evt_${(hash >>> 0).toString(36)}`;
+}
+
+function localDateKey(date: Date): string {
+  const parts = getDatePartsInTimeZone(date, LOCAL_TZ);
+  return datePartsToDateString(parts.year, parts.month, parts.day);
+}
+
+function datePartsToDateString(year: number, month: number, day: number): string {
+  return [
+    String(year).padStart(4, "0"),
+    String(month).padStart(2, "0"),
+    String(day).padStart(2, "0")
+  ].join("-");
+}
+
+function parseDateStringParts(value: string): { year: number; month: number; day: number } {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    throw new Error(`Invalid date string: ${value}`);
+  }
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3])
+  };
+}
+
+function addDaysToDateString(value: string, days: number): string {
+  const parts = parseDateStringParts(value);
+  const result = addDaysToDateParts(parts.year, parts.month, parts.day, days);
+
+  return datePartsToDateString(result.year, result.month, result.day);
+}
+
+function localDateStringToUtc(value: string): Date {
+  const parts = parseDateStringParts(value);
+
+  return zonedDateTimeToUtc(
+    parts.year,
+    parts.month,
+    parts.day,
+    0,
+    0,
+    0,
+    LOCAL_TZ
+  );
+}
+
+function enumerateLocalDates(firstDay: string, lastDay: string): string[] {
+  const dates: string[] = [];
+
+  let current = firstDay;
+
+  while (current <= lastDay) {
+    dates.push(current);
+    current = addDaysToDateString(current, 1);
+  }
+
+  return dates;
+}
+
+function addLocalDaysToUtc(date: Date, days: number): Date {
+  const parts = getDatePartsInTimeZone(date, LOCAL_TZ);
+  const target = addDaysToDateParts(parts.year, parts.month, parts.day, days);
+
+  return zonedDateTimeToUtc(
+    target.year,
+    target.month,
+    target.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+    LOCAL_TZ
+  );
 }
 
 function getDatePartsInTimeZone(date: Date, timeZone: string) {
@@ -490,6 +694,14 @@ function addDaysToDateParts(
     month: date.getUTCMonth() + 1,
     day: date.getUTCDate()
   };
+}
+
+function minDate(...dates: Date[]): Date {
+  return new Date(Math.min(...dates.map((date) => date.getTime())));
+}
+
+function maxDate(...dates: Date[]): Date {
+  return new Date(Math.max(...dates.map((date) => date.getTime())));
 }
 
 function toIsoZ(date: Date): string {
