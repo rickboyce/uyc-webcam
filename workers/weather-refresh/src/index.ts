@@ -1,12 +1,12 @@
 const LATITUDE = "54.5950";
 const LONGITUDE = "-2.8412";
-
 const WEATHER_OBJECT_KEY_DEFAULT = "var/weather.json";
 
 type Env = {
   UYC_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "test";
   WEATHER_OBJECT_KEY?: string;
+  REFRESH_TOKEN?: string;
 };
 
 export default {
@@ -15,7 +15,13 @@ export default {
     ctx.waitUntil(updateWeather(env));
   },
 
-  async fetch(_request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (request.method === "POST" && url.pathname === "/refresh") {
+      return handleManualRefresh(request, env);
+    }
+
     return Response.json({
       ok: true,
       service: "uyc-webcam-weather-refresh",
@@ -23,6 +29,33 @@ export default {
     });
   }
 };
+
+async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
+  if (env.ENVIRONMENT !== "test") {
+    return Response.json(
+      { ok: false, error: "Manual refresh is only enabled for test" },
+      { status: 403 }
+    );
+  }
+/*
+  const expectedAuth = `Bearer ${env.REFRESH_TOKEN}`;
+  const actualAuth = request.headers.get("authorization");
+
+  if (!env.REFRESH_TOKEN || actualAuth !== expectedAuth) {
+    return Response.json(
+      { ok: false, error: "Unauthorized" },
+      { status: 401 }
+    );
+  }*/
+
+  await updateWeather(env);
+
+  return Response.json({
+    ok: true,
+    environment: env.ENVIRONMENT,
+    refreshed_at: new Date().toISOString()
+  });
+}
 
 async function updateWeather(env: Env): Promise<void> {
   const weatherApiUrl = buildWeatherApiUrl();
