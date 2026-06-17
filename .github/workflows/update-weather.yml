@@ -8,8 +8,7 @@ on:
       - test
 
   schedule:
-    # Production update every 15 minutes, offset away from :00
-    - cron: "7,22,37,52 * * * *"
+    - cron: "16/15 * * * *"
 
 env:
   WEATHER_API_URL: >-
