@@ -294,7 +294,6 @@ function decodeHtmlEntities(value: string): string {
       return String.fromCodePoint(parseInt(code, 16));
     })
     .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
@@ -305,7 +304,8 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&rdquo;/g, "”")
     .replace(/&ldquo;/g, "“")
     .replace(/&ndash;/g, "–")
-    .replace(/&mdash;/g, "—");
+    .replace(/&mdash;/g, "—")
+    .replace(/&amp;/g, "&");
 }
 
 function splitIcsProperty(line: string): [string | null, IcsParams, string] {
