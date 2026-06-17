@@ -9,25 +9,8 @@ OUTPUT_DIR="${OUTPUT_DIR:-/data}"
 CAMERA_TMP_FILE="${OUTPUT_DIR}/webcam-working.jpg"
 CAMERA_FILE="${OUTPUT_DIR}/webcam.jpg"
 
-WEATHER_ENABLED="${WEATHER_ENABLED:-true}"
-WEATHER_INTERVAL="${WEATHER_INTERVAL:-900}"
-WEATHER_FILE="${OUTPUT_DIR}/weather.json"
-WEATHER_TMP_FILE="${OUTPUT_DIR}/weather-working.json"
-
-CALENDAR_ENABLED="${CALENDAR_ENABLED:-true}"
-CALENDAR_INTERVAL="${CALENDAR_INTERVAL:-3600}"
-: "${CALENDAR_URL:?CALENDAR_URL environment variable is required}"
-CALENDAR_FILE="${OUTPUT_DIR}/events.json"
-CALENDAR_TMP_FILE="${OUTPUT_DIR}/events-working.json"
-
-: "${LAT:?LAT environment variable is required}"
-: "${LON:?LON environment variable is required}"
-
-WEATHER_URL="${WEATHER_URL:-https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant&timezone=Europe%2FLondon&forecast_days=4&wind_speed_unit=mph}"
-
 R2_UPLOAD_ENABLED="${R2_UPLOAD_ENABLED:-true}"
 R2_REMOTE_NAME="${R2_REMOTE_NAME:-r2}"
-R2_CALENDAR_OBJECT="${R2_CALENDAR_OBJECT:-events.json}"
 
 # Defaults for the rclone remote named "r2".
 # These must be exported so the rclone child process can see them.
@@ -41,8 +24,6 @@ if [ "$R2_UPLOAD_ENABLED" = "true" ]; then
 
     : "${R2_BUCKET:?R2_BUCKET environment variable is required}"
     : "${R2_CAMERA_OBJECT:?R2_CAMERA_OBJECT environment variable is required}"
-    : "${R2_WEATHER_OBJECT:?R2_WEATHER_OBJECT environment variable is required}"
-    : "${R2_CALENDAR_OBJECT:?R2_CALENDAR_OBJECT environment variable is required}"
 
     export RCLONE_CONFIG_R2_ACCESS_KEY_ID
     export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY
@@ -56,35 +37,6 @@ echo "$(date -Iseconds) webcam-capture: R2 upload enabled is ${R2_UPLOAD_ENABLED
 echo "$(date -Iseconds) webcam-capture: R2 bucket is ${R2_BUCKET:-unset}"
 echo "$(date -Iseconds) webcam-capture: camera interval is ${CAPTURE_INTERVAL}s"
 echo "$(date -Iseconds) webcam-capture: R2 camera object is ${R2_CAMERA_OBJECT:-unset}"
-echo "$(date -Iseconds) webcam-capture: weather enabled is ${WEATHER_ENABLED}"
-echo "$(date -Iseconds) webcam-capture: weather interval is ${WEATHER_INTERVAL}s"
-echo "$(date -Iseconds) webcam-capture: R2 weather object is ${R2_WEATHER_OBJECT:-unset}"
-echo "$(date -Iseconds) webcam-capture: calendar enabled is ${CALENDAR_ENABLED}"
-echo "$(date -Iseconds) webcam-capture: calendar interval is ${CALENDAR_INTERVAL}s"
-echo "$(date -Iseconds) webcam-capture: calendar URL is ${CALENDAR_URL}"
-echo "$(date -Iseconds) webcam-capture: R2 calendar object is ${R2_CALENDAR_OBJECT:-unset}"
-
-fetch_calendar() {
-    if [ "$CALENDAR_ENABLED" != "true" ]; then
-        return 0
-    fi
-
-    echo "$(date -Iseconds) webcam-capture: fetching calendar"
-
-    if python3 /usr/local/bin/ics-to-json.py "$CALENDAR_URL" "$CALENDAR_TMP_FILE"; then
-        if [ -s "$CALENDAR_TMP_FILE" ]; then
-            mv "$CALENDAR_TMP_FILE" "$CALENDAR_FILE"
-            echo "$(date -Iseconds) webcam-capture: calendar fetch successful"
-            upload_file_to_r2 "$CALENDAR_FILE" "${R2_CALENDAR_OBJECT:-}" "calendar"
-        else
-            rm -f "$CALENDAR_TMP_FILE"
-            echo "$(date -Iseconds) webcam-capture: calendar fetch failed - empty JSON file" >&2
-        fi
-    else
-        rm -f "$CALENDAR_TMP_FILE"
-        echo "$(date -Iseconds) webcam-capture: calendar fetch failed - Python conversion error" >&2
-    fi
-}
 
 upload_file_to_r2() {
     SRC_FILE="$1"
@@ -143,61 +95,7 @@ capture_image() {
     fi
 }
 
-fetch_weather() {
-    if [ "$WEATHER_ENABLED" != "true" ]; then
-        return 0
-    fi
-
-    echo "$(date -Iseconds) webcam-capture: fetching weather"
-
-    if curl \
-        --fail \
-        --silent \
-        --show-error \
-        --location \
-        --max-time 20 \
-        "$WEATHER_URL" \
-        -o "$WEATHER_TMP_FILE"; then
-
-        if [ -s "$WEATHER_TMP_FILE" ]; then
-            mv "$WEATHER_TMP_FILE" "$WEATHER_FILE"
-            echo "$(date -Iseconds) webcam-capture: weather fetch successful"
-            upload_file_to_r2 "$WEATHER_FILE" "${R2_WEATHER_OBJECT:-}" "weather"
-        else
-            rm -f "$WEATHER_TMP_FILE"
-            echo "$(date -Iseconds) webcam-capture: weather fetch failed - empty file" >&2
-        fi
-    else
-        rm -f "$WEATHER_TMP_FILE"
-        echo "$(date -Iseconds) webcam-capture: weather fetch failed - curl error" >&2
-    fi
-}
-
-LAST_WEATHER_FETCH=0
-LAST_CALENDAR_FETCH=0
-
 while true; do
-    NOW="$(date +%s)"
-
     capture_image
-
-    if [ "$WEATHER_ENABLED" = "true" ]; then
-        WEATHER_AGE=$((NOW - LAST_WEATHER_FETCH))
-
-        if [ "$LAST_WEATHER_FETCH" -eq 0 ] || [ "$WEATHER_AGE" -ge "$WEATHER_INTERVAL" ]; then
-            fetch_weather
-            LAST_WEATHER_FETCH="$(date +%s)"
-        fi
-    fi
-
-    if [ "$CALENDAR_ENABLED" = "true" ]; then
-        CALENDAR_AGE=$((NOW - LAST_CALENDAR_FETCH))
-
-        if [ "$LAST_CALENDAR_FETCH" -eq 0 ] || [ "$CALENDAR_AGE" -ge "$CALENDAR_INTERVAL" ]; then
-            fetch_calendar
-            LAST_CALENDAR_FETCH="$(date +%s)"
-        fi
-    fi
-
     sleep "$CAPTURE_INTERVAL"
 done
