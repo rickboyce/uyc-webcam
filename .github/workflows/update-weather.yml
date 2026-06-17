@@ -63,6 +63,5 @@ jobs:
         run: |
           rclone copyto out/var/weather.json "r2:${R2_BUCKET}/var/weather.json" \
             --s3-no-check-bucket \
-            --s3-no-head \
             --retries 3 \
             --low-level-retries 5
