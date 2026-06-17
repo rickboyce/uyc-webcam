@@ -141,7 +141,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_WORKER_ACCOUNT_ID }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/weather-refresh
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_DEPLOY_COMMAND }}
@@ -150,7 +150,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_WORKER_ACCOUNT_ID }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/weather-refresh
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_TRIGGERS_COMMAND }}
@@ -208,7 +208,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_WORKER_ACCOUNT_ID }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/events-refresh
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_DEPLOY_COMMAND }}
@@ -217,7 +217,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_WORKER_ACCOUNT_ID }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/events-refresh
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_TRIGGERS_COMMAND }}
