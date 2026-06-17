@@ -3,7 +3,7 @@ const CALENDAR_URL =
 
 const LOCAL_TZ = "Europe/London";
 const UTC_TZ = "UTC";
-const LOOKAHEAD_DAYS = 7;
+const LOOKAHEAD_DAYS = 100;
 const EVENTS_OBJECT_KEY_DEFAULT = "var/events7day.json";
 
 const TZID_ALIASES: Record<string, string> = {
