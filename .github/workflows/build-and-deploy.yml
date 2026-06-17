@@ -124,3 +124,15 @@ jobs:
           workingDirectory: workers/weather-refresh
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_COMMAND }}
+
+      - name: Trigger test weather refresh
+        if: github.ref_name == 'test'
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 3 \
+            --request POST \
+            --header "Authorization: Bearer ${TEST_WEATHER_REFRESH_TOKEN}" \
+            "${TEST_WEATHER_REFRESH_URL}"
+        env:
+          TEST_WEATHER_REFRESH_TOKEN: ${{ secrets.TEST_WEATHER_REFRESH_TOKEN }}
+          TEST_WEATHER_REFRESH_URL: ${{ secrets.TEST_WEATHER_REFRESH_URL }}
