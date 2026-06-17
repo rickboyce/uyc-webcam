@@ -63,6 +63,7 @@ jobs:
       - name: Upload events JSON to R2
         run: |
           rclone copyto out/var/events7day.json "r2:${R2_BUCKET}/var/events7day.json" \
-            --s3-no-check-bucket
+            --s3-no-check-bucket \
+            --s3-no-head \
             --retries 3 \
             --low-level-retries 5
