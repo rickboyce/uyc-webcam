@@ -1,0 +1,67 @@
+name: Deploy static site
+
+on:
+  push:
+    branches:
+      - main
+      - test
+    paths:
+      - 'site/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-static:
+    name: Deploy static files to R2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set deployment target
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "R2_BUCKET=uyc-webcam" >> "$GITHUB_ENV"
+          else
+            echo "R2_BUCKET=uyc-webcam-test" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Prepare static files
+        run: |
+          rm -rf dist
+          mkdir -p dist
+
+          cp -r site/. dist/
+
+      - name: Configure rclone for Cloudflare R2
+        run: |
+          mkdir -p ~/.config/rclone
+
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = private
+          EOF
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Upload static files to R2
+        run: |
+          rclone sync dist "r2:${R2_BUCKET}" \
+            --exclude "/var/**" \
+            --progress \
+            --s3-no-check-bucket \
+            --s3-no-head
