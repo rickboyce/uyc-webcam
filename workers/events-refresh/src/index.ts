@@ -3,8 +3,13 @@ const CALENDAR_URL =
 
 const LOCAL_TZ = "Europe/London";
 const UTC_TZ = "UTC";
-const LOOKAHEAD_DAYS = 100;
+const LOOKAHEAD_DAYS = 7;
 const EVENTS_OBJECT_KEY_DEFAULT = "var/events7day.json";
+
+// The UYC feed currently marks at least one cancelled event only in SUMMARY,
+// rather than with STATUS:CANCELLED. Keep this configurable in case the title
+// check ever becomes too broad.
+const FILTER_CANCELLED_EVENTS_BY_TITLE = true;
 
 const TZID_ALIASES: Record<string, string> = {
   "GMT Standard Time": "Europe/London"
@@ -115,7 +120,9 @@ async function updateEvents(env: Env): Promise<void> {
     }
   );
 
-  console.log(`[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`);
+  console.log(
+    `[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`
+  );
 }
 
 function convertIcsTextToJson(icsText: string, sourceUrl: string) {
@@ -161,10 +168,8 @@ function convertIcsTextToJson(icsText: string, sourceUrl: string) {
 
     if (line === "END:VEVENT") {
       if (currentEvent !== null) {
-        const status = (currentEvent.status || "").toUpperCase();
-
         if (
-          status !== "CANCELLED" &&
+          !isCancelledEvent(currentEvent) &&
           eventOverlapsWindow(currentEvent, windowStart, windowEnd)
         ) {
           events.push(...expandEventAcrossDays(currentEvent, windowStart, windowEnd));
@@ -226,6 +231,21 @@ function convertIcsTextToJson(icsText: string, sourceUrl: string) {
   };
 }
 
+function isCancelledEvent(event: EventRecord): boolean {
+  const status = (event.status || "").toUpperCase();
+
+  if (status === "CANCELLED") {
+    return true;
+  }
+
+  if (!FILTER_CANCELLED_EVENTS_BY_TITLE) {
+    return false;
+  }
+
+  const title = event.title || "";
+  return /\bCANCELLED\b/i.test(title);
+}
+
 function unfoldIcsLines(text: string): string[] {
   const lines = text.split(/\r?\n/);
   const unfolded: string[] = [];
@@ -267,12 +287,25 @@ function cleanIcsText(value: string, polishSpacing = false): string {
 
 function decodeHtmlEntities(value: string): string {
   return value
+    .replace(/&#(\d+);/g, (_match, code) => {
+      return String.fromCodePoint(Number(code));
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_match, code) => {
+      return String.fromCodePoint(parseInt(code, 16));
+    })
+    .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
+    .replace(/&apos;/g, "'")
+    .replace(/&rsquo;/g, "’")
+    .replace(/&lsquo;/g, "‘")
+    .replace(/&rdquo;/g, "”")
+    .replace(/&ldquo;/g, "“")
+    .replace(/&ndash;/g, "–")
+    .replace(/&mdash;/g, "—");
 }
 
 function splitIcsProperty(line: string): [string | null, IcsParams, string] {
