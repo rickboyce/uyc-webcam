@@ -1,0 +1,50 @@
+name: Build webcam capture container
+
+on:
+  push:
+    branches:
+      - main
+      - test
+    paths:
+      - 'capture/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/uyc-webcam-capture
+
+jobs:
+  build-docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Docker image tags
+        id: tags
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "tags=${IMAGE_NAME}:latest,${IMAGE_NAME}:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=${IMAGE_NAME}:test,${IMAGE_NAME}:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./capture
+          file: ./capture/Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}

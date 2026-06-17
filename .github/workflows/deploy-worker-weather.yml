@@ -1,0 +1,81 @@
+name: Deploy weather worker
+
+on:
+  push:
+    branches:
+      - main
+      - test
+    paths:
+      - 'workers/weather-refresh/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-weather-worker:
+    name: Deploy weather worker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Create test Worker secrets file
+        if: github.ref_name == 'test'
+        working-directory: workers/weather-refresh
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open("worker-secrets.json", "w", encoding="utf-8") as f:
+              json.dump(
+                  {
+                      "REFRESH_TOKEN": os.environ["TEST_WEATHER_REFRESH_TOKEN"]
+                  },
+                  f
+              )
+          PY
+        env:
+          TEST_WEATHER_REFRESH_TOKEN: ${{ secrets.TEST_WORKER_REFRESH_TOKEN }}
+
+      - name: Set Worker deployment environment
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "test" ]; then
+            echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc -e test --secrets-file worker-secrets.json" >> "$GITHUB_ENV"
+            echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc -e test" >> "$GITHUB_ENV"
+          else
+            echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc" >> "$GITHUB_ENV"
+            echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/weather-refresh
+          wranglerVersion: "4"
+          command: ${{ env.WRANGLER_DEPLOY_COMMAND }}
+
+      - name: Deploy Worker triggers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/weather-refresh
+          wranglerVersion: "4"
+          command: ${{ env.WRANGLER_TRIGGERS_COMMAND }}
+
+      - name: Trigger test weather refresh
+        if: github.ref_name == 'test'
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 3 \
+            --request POST \
+            --header "Authorization: Bearer ${TEST_WEATHER_REFRESH_TOKEN}" \
+            "${TEST_WEATHER_REFRESH_URL}"
+        env:
+          TEST_WEATHER_REFRESH_TOKEN: ${{ secrets.TEST_WORKER_REFRESH_TOKEN }}
+          TEST_WEATHER_REFRESH_URL: ${{ secrets.TEST_WEATHER_REFRESH_URL }}/refresh
