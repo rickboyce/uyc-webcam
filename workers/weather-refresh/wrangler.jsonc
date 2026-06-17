@@ -3,6 +3,7 @@
     "name": "uyc-webcam-weather-refresh",
     "main": "src/index.ts",
     "compatibility_date": "2026-06-17",
+    "workers_dev": false,
   
     "triggers": {
       "crons": [
@@ -25,6 +26,7 @@
     "env": {
       "test": {
         "name": "uyc-webcam-weather-refresh-test",
+        "workers_dev": true,
   
         "triggers": {
           "crons": []

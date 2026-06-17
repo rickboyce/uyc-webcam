@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "uyc-webcam-events-refresh",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-17",
+  "workers_dev": false,
+
+  "triggers": {
+    "crons": [
+      "13 * * * *"
+    ]
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "UYC_BUCKET",
+      "bucket_name": "uyc-webcam"
+    }
+  ],
+
+  "vars": {
+    "ENVIRONMENT": "prod",
+    "EVENTS_OBJECT_KEY": "var/events7day.json"
+  },
+
+  "env": {
+    "test": {
+      "name": "uyc-webcam-events-refresh-test",
+      "workers_dev": true,
+
+      "triggers": {
+        "crons": []
+      },
+
+      "r2_buckets": [
+        {
+          "binding": "UYC_BUCKET",
+          "bucket_name": "uyc-webcam-test"
+        }
+      ],
+
+      "vars": {
+        "ENVIRONMENT": "test",
+        "EVENTS_OBJECT_KEY": "var/events7day.json"
+      }
+    }
+  }
+}
