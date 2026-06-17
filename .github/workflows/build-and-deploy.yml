@@ -99,7 +99,7 @@ jobs:
           file: ./capture/Dockerfile
           push: true
           tags: ${{ steps.tags.outputs.tags }}
-          
+
   deploy-weather-worker:
     name: Deploy weather Worker
     runs-on: ubuntu-latest
