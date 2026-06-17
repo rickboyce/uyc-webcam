@@ -286,26 +286,40 @@ function cleanIcsText(value: string, polishSpacing = false): string {
 }
 
 function decodeHtmlEntities(value: string): string {
+  // Calendar text is displayed as plain text, not trusted HTML.
+  // Decode only the common presentation entities we expect from the UYC feed,
+  // and deliberately avoid producing HTML-significant characters such as
+  // <, >, quotes or ampersands from numeric entities. This prevents inputs such
+  // as &amp;lt; or &#38;lt; from being decoded twice into real markup.
   return value
-    .replace(/&#(\d+);/g, (_match, code) => {
-      return String.fromCodePoint(Number(code));
+    .replace(/&#(\d+);/g, (match, code) => {
+      return decodeSafeNumericHtmlEntity(match, Number(code));
     })
-    .replace(/&#x([0-9a-f]+);/gi, (_match, code) => {
-      return String.fromCodePoint(parseInt(code, 16));
+    .replace(/&#x([0-9a-f]+);/gi, (match, code) => {
+      return decodeSafeNumericHtmlEntity(match, parseInt(code, 16));
     })
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&rsquo;/g, "’")
-    .replace(/&lsquo;/g, "‘")
-    .replace(/&rdquo;/g, "”")
-    .replace(/&ldquo;/g, "“")
-    .replace(/&ndash;/g, "–")
-    .replace(/&mdash;/g, "—");
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&rsquo;/gi, "’")
+    .replace(/&lsquo;/gi, "‘")
+    .replace(/&rdquo;/gi, "”")
+    .replace(/&ldquo;/gi, "“")
+    .replace(/&ndash;/gi, "–")
+    .replace(/&mdash;/gi, "—")
+    .replace(/&amp;/gi, "&");
+}
+
+function decodeSafeNumericHtmlEntity(original: string, codePoint: number): string {
+  if (!Number.isInteger(codePoint) || codePoint < 0 || codePoint > 0x10ffff) {
+    return original;
+  }
+
+  const decoded = String.fromCodePoint(codePoint);
+
+  return isHtmlSignificantCharacter(decoded) ? original : decoded;
+}
+
+function isHtmlSignificantCharacter(value: string): boolean {
+  return value === "&" || value === "<" || value === ">" || value === '"' || value === "'";
 }
 
 function splitIcsProperty(line: string): [string | null, IcsParams, string] {
