@@ -63,8 +63,10 @@ jobs:
       - name: Upload static files to R2
         run: |
           rclone sync dist "r2:${R2_BUCKET}" \
+            --exclude "/var/**" \
             --progress \
-            --s3-no-check-bucket
+            --s3-no-check-bucket \
+            --s3-no-head
 
   build-docker:
     name: Build Docker image
