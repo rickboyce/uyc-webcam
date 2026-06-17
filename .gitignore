@@ -18,10 +18,30 @@ camera-working.jpg
 events.json
 webcam.jpg
 
-# macOS
-.DS_Store
-
 # Docker/build noise
 *.tar
 *.log
 
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Wrangler / Cloudflare Workers local state
+.wrangler/
+.dev.vars
+.dev.vars.*
+wrangler.toml.bak
+
+# Build outputs
+dist/
+build/
+.tmp/
+.cache/
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/
