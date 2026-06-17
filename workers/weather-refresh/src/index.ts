@@ -37,7 +37,7 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
       { status: 403 }
     );
   }
-/*
+
   const expectedAuth = `Bearer ${env.REFRESH_TOKEN}`;
   const actualAuth = request.headers.get("authorization");
 
@@ -46,7 +46,7 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
       { ok: false, error: "Unauthorized" },
       { status: 401 }
     );
-  }*/
+  }
 
   await updateWeather(env);
 
