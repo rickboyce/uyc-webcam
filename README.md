@@ -53,13 +53,6 @@ The project has separate **test** and **production** environments.
 * The `main` branch deploys to production.
 * The `test` branch deploys to the test environment.
 
-### Components
-
-* Worker - Weather [![deploy-worker-weather](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml)
-* Worker - Events [![deploy-worker-events](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
-* Container - Webcam Capture [![build-capture](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)
-* Static Site [![deploy-site](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml)
-
 ---
 
 ## Project structure
@@ -79,19 +72,23 @@ uyc-webcam/
 
 Docker-based webcam capture tooling intended to run on a MikroTik RouterOS router.
 
-### `site/`
+### `site/` 
+[![deploy-site](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml)
 
 Static website files for the public webcam page.
 
 ### `workers/weather-refresh/`
+[![deploy-worker-weather](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml)
 
 Cloudflare Worker for refreshing weather data.
 
 ### `workers/events-refresh/`
+[![deploy-worker-events](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
 
 Cloudflare Worker for refreshing upcoming Club events.
 
 ### `deploy/routeros/`
+[![build-capture](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)
 
 Example RouterOS configuration for deploying the capture tool using RouterOS Containers.
 
