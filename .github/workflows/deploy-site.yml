@@ -31,7 +31,10 @@ jobs:
 
       - name: Install rclone
         run: |
-          curl https://rclone.org/install.sh | sudo bash
+          curl -fsSLO https://downloads.rclone.org/rclone-current-linux-amd64.zip
+          unzip -q rclone-current-linux-amd64.zip
+          sudo install -m 0755 rclone-*-linux-amd64/rclone /usr/local/bin/rclone
+          rclone version
 
       - name: Set up Node
         uses: actions/setup-node@v4
