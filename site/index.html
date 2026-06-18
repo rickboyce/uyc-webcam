@@ -34,17 +34,17 @@
 
         <div class="weather-grid">
             <div class="card weather-card-temperature">
-                <div class="weather-label">Temperature</div>
+                <div class="label weather-label">Temperature</div>
                 <div class="weather-main" id="weather-now">Loading...</div>
             </div>
 
             <div class="card weather-card-wind">
-                <div class="weather-label">Wind</div>
+                <div class="label weather-label">Wind</div>
                 <div class="weather-main" id="weather-wind">Loading...</div>
             </div>
 
             <div class="card weather-card-rain">
-                <div class="weather-label">Rain</div>
+                <div class="label weather-label">Rain</div>
                 <div class="weather-main" id="weather-rain">Loading...</div>
             </div>
         </div>
@@ -58,9 +58,9 @@
 
         <h2 class="section-heading forecast-heading">Weather Links</h2>
         <div class="weather-links" aria-label="Detailed weather forecast links">
-            <a class="weather-link" href="https://weather.metoffice.gov.uk/forecast/gctyxvgnn?nearestTo=CA11%20(United%20Kingdom)#" target="_blank" rel="noopener noreferrer">Met Office</a>
-            <a class="weather-link" href="https://xcweather.co.uk/forecast/ca102na" target="_blank" rel="noopener noreferrer">XCWeather</a>
-            <a class="weather-link" href="https://www.glenriddingcybercafe.co.uk/weather-pbpier/" target="_blank" rel="noopener noreferrer">Pooley Bridge Weather Station</a>
+            <a class="button-link weather-link" href="https://weather.metoffice.gov.uk/forecast/gctyxvgnn?nearestTo=CA11%20(United%20Kingdom)#" target="_blank" rel="noopener noreferrer">Met Office</a>
+            <a class="button-link weather-link" href="https://xcweather.co.uk/forecast/ca102na" target="_blank" rel="noopener noreferrer">XCWeather</a>
+            <a class="button-link weather-link" href="https://www.glenriddingcybercafe.co.uk/weather-pbpier/" target="_blank" rel="noopener noreferrer">Pooley Bridge Weather Station</a>
         </div>
 
         <div class="source-note weather-source">
@@ -86,7 +86,7 @@
                     <summary>Credits, sources & licences</summary>
                     <p>Webcam imagery is kindly provided by Ullswater Yacht Club, but this remains an independent project and Ullswater Yacht Club is not responsible for the operation, accuracy, availability or use of this site. Weather data is from <a href="https://open-meteo.com/en/licence" target="_blank" rel="noopener noreferrer">Open-Meteo</a> and is used under the Creative Commons Attribution 4.0 International licence. Weather icons are <a href="https://meteocons.com/" target="_blank" rel="noopener noreferrer">Meteocons</a> by Bas Milius, used under the MIT licence. Event information comes from the public <a href="https://ullswateryachtclub.org/events?upcoming=true" target="_blank" rel="noopener noreferrer">Ullswater Yacht Club calendar</a>.</p>
                 </details>
-                <a class="footer-github" href="https://github.com/rickboyce/uyc-webcam" target="_blank" rel="noopener noreferrer"><span class="footer-octocat" aria-hidden="true">🐙</span>View on GitHub</a>
+                <a class="button-link footer-github" href="https://github.com/rickboyce/uyc-webcam" target="_blank" rel="noopener noreferrer"><span class="footer-octocat" aria-hidden="true">🐙</span>View on GitHub</a>
             </div>
         </div>
     </footer>
@@ -404,9 +404,9 @@
                             card.innerHTML = `
                                 <div class="event-when" aria-label="${escapeHtml(formatEventDateRange(event))}">
                                     <div class="date-badge event-date" aria-hidden="true">
-                                        <span class="event-date-day">${escapeHtml(badge.day)}</span>
-                                        <span class="event-date-number">${escapeHtml(badge.number)}</span>
-                                        <span class="event-date-month">${escapeHtml(badge.month)}</span>
+                                        <span class="date-badge-part event-date-day">${escapeHtml(badge.day)}</span>
+                                        <span class="date-badge-number event-date-number">${escapeHtml(badge.number)}</span>
+                                        <span class="date-badge-part event-date-month">${escapeHtml(badge.month)}</span>
                                     </div>
                                 </div>
                                 <div class="event-content">
@@ -583,9 +583,9 @@
                         card.innerHTML = `
                             <div class="weather-day-head">
                                 <div class="date-badge weather-day-date" aria-hidden="true">
-                                    <span class="weather-day-date-weekday">${weekday}</span>
-                                    <span class="weather-day-date-number">${dayNumber}</span>
-                                    <span class="weather-day-date-month">${month}</span>
+                                    <span class="date-badge-part weather-day-date-weekday">${weekday}</span>
+                                    <span class="date-badge-number weather-day-date-number">${dayNumber}</span>
+                                    <span class="date-badge-part weather-day-date-month">${month}</span>
                                 </div>
                                 ${weatherIconMarkup(daily.weather_code[i], desc)}
                                 <div class="weather-day-summary">
@@ -599,19 +599,19 @@
                             </div>
                             <div class="weather-day-stats">
                                 <div class="weather-stat">
-                                    <span class="weather-stat-label">Rain</span>
+                                    <span class="label weather-stat-label">Rain</span>
                                     <span class="weather-stat-value">${rain}%</span>
                                 </div>
                                 <div class="weather-stat">
-                                    <span class="weather-stat-label">Wind</span>
+                                    <span class="label weather-stat-label">Wind</span>
                                     <span class="weather-stat-value">${maxWindMph} mph</span>
                                 </div>
                                 <div class="weather-stat weather-stat-direction">
-                                    <span class="weather-stat-label">From</span>
+                                    <span class="label weather-stat-label">From</span>
                                     <span class="weather-stat-value">${dominantWindDirection ? windDirectionMarkup(dominantWindDirection, dominantWindDegrees) : "—"}</span>
                                 </div>
                                 <div class="weather-stat">
-                                    <span class="weather-stat-label">Gusts</span>
+                                    <span class="label weather-stat-label">Gusts</span>
                                     <span class="weather-stat-value">${maxGustMph} mph</span>
                                 </div>
                             </div>
