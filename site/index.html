@@ -1158,14 +1158,23 @@
                 return descriptions[code] || "Unknown";
             }
 
-            function weatherIconName(code) {
+            function isDaytime(value) {
+                return value === true || value === 1 || value === "1";
+            }
+
+            function weatherIconName(code, isDay = true) {
+                const dayNightIcons = {
+                    0: isDay ? "clear-day" : "clear-night",
+                    1: isDay ? "partly-cloudy-day" : "partly-cloudy-night",
+                    2: isDay ? "partly-cloudy-day" : "partly-cloudy-night",
+                    45: isDay ? "fog-day" : "fog-night",
+                    48: isDay ? "fog-day" : "fog-night",
+                    80: isDay ? "partly-cloudy-day-rain" : "partly-cloudy-night-rain",
+                    96: isDay ? "thunderstorms-day-rain" : "thunderstorms-night-rain"
+                };
+
                 const icons = {
-                    0: "clear-day",
-                    1: "partly-cloudy-day",
-                    2: "partly-cloudy-day",
                     3: "overcast",
-                    45: "fog",
-                    48: "fog",
                     51: "drizzle",
                     53: "drizzle",
                     55: "drizzle",
@@ -1180,17 +1189,15 @@
                     73: "snow",
                     75: "snow",
                     77: "snowflake",
-                    80: "partly-cloudy-day-rain",
                     81: "rain",
                     82: "extreme-rain",
                     85: "snow",
                     86: "extreme-snow",
                     95: "thunderstorms-rain",
-                    96: "thunderstorms-day-rain",
                     99: "thunderstorms-rain"
                 };
 
-                return icons[code] || "not-available";
+                return dayNightIcons[code] || icons[code] || "not-available";
             }
 
             function meteoconMarkup(iconName, description) {
@@ -1201,8 +1208,8 @@
                 return `${meteoconMarkup(iconName, description)}<span class="wind-force-badge" aria-hidden="true">F${beaufortForce}</span>`;
             }
 
-            function weatherIconMarkup(code, description) {
-                return meteoconMarkup(weatherIconName(code), description);
+            function weatherIconMarkup(code, description, isDay = true) {
+                return meteoconMarkup(weatherIconName(code, isDay), description);
             }
 
             
@@ -1529,6 +1536,7 @@
                     const windDir = compassDirection(current.wind_direction_10m);
                     const rainToday = daily.precipitation_probability_max[0];
                     const currentWeatherDescription = weatherDescription(current.weather_code);
+                    const currentIsDay = current.is_day === undefined ? true : isDaytime(current.is_day);
 
                     document.getElementById("weather-condition-heading").textContent = ` – ${currentWeatherDescription}`;
 
@@ -1539,7 +1547,7 @@
                         `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortScaleFromMph(windMph)}`, beaufortScaleFromMph(windMph))}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
 
                     document.getElementById("weather-rain").innerHTML =
-                        `${weatherIconMarkup(current.weather_code, currentWeatherDescription)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
+                        `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
 
                     renderHourlyWind(data);
 
