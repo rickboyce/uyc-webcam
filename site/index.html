@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
     <link rel="manifest" href="/assets/site.webmanifest">
     <meta name="theme-color" content="#0b5f8a">
-    
+
     <noscript>
         <meta http-equiv="refresh" content="60">
     </noscript>
@@ -27,13 +27,13 @@
         </div>
     </header>
 
-    <img id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
+    <img hidden id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
     <noscript>
         <img class="webcam-image" src="/var/webcam.jpg" alt="Latest webcam image">
     </noscript>
 
     <div class="note">
-        Updates every 60 seconds. Latest image: <span id="webcam-timestamp">(loading)</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
+        Updates every 60 seconds. <span data-js-driven hidden>Latest image: <span id="webcam-timestamp">(loading)</span>.</span> This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
     </div>
 
     <section class="panel weather" data-js-driven hidden>
