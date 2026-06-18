@@ -45,7 +45,35 @@ build/
 .tmp/
 .cache/
 
-# OS/editor noise
+# Python local/runtime noise
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local development server noise
+*.pid
+*.tmp
+*.temp
+
+# OS noise
 .DS_Store
-.vscode/
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor noise
 .idea/
+*.swp
+*.swo
+*~
+
+# VS Code: ignore local/editor state but allow shared project tasks
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
