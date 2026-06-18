@@ -29,21 +29,21 @@
         Updates every 60 seconds. Latest image: <span id="webcam-timestamp">(loading)</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
     </div>
 
-    <section class="weather">
-        <h2>Current Weather<span class="weather-heading-condition" id="weather-condition-heading"></span></h2>
+    <section class="panel weather">
+        <h2 class="section-heading">Current Weather<span class="weather-heading-condition" id="weather-condition-heading"></span></h2>
 
         <div class="weather-grid">
-            <div class="weather-card-temperature">
+            <div class="card weather-card-temperature">
                 <div class="weather-label">Temperature</div>
                 <div class="weather-main" id="weather-now">Loading...</div>
             </div>
 
-            <div class="weather-card-wind">
+            <div class="card weather-card-wind">
                 <div class="weather-label">Wind</div>
                 <div class="weather-main" id="weather-wind">Loading...</div>
             </div>
 
-            <div class="weather-card-rain">
+            <div class="card weather-card-rain">
                 <div class="weather-label">Rain</div>
                 <div class="weather-main" id="weather-rain">Loading...</div>
             </div>
@@ -53,27 +53,27 @@
             <div class="weather-hours" id="weather-hours"></div>
         </div>
 
-        <h2 class="forecast-heading">3 Day Forecast</h2>
+        <h2 class="section-heading forecast-heading">3 Day Forecast</h2>
         <div class="weather-days" id="weather-days"></div>
 
-        <h2 class="forecast-heading">Weather Links</h2>
+        <h2 class="section-heading forecast-heading">Weather Links</h2>
         <div class="weather-links" aria-label="Detailed weather forecast links">
             <a class="weather-link" href="https://weather.metoffice.gov.uk/forecast/gctyxvgnn?nearestTo=CA11%20(United%20Kingdom)#" target="_blank" rel="noopener noreferrer">Met Office</a>
             <a class="weather-link" href="https://xcweather.co.uk/forecast/ca102na" target="_blank" rel="noopener noreferrer">XCWeather</a>
             <a class="weather-link" href="https://www.glenriddingcybercafe.co.uk/weather-pbpier/" target="_blank" rel="noopener noreferrer">Pooley Bridge Weather Station</a>
         </div>
 
-        <div class="weather-source">
+        <div class="source-note weather-source">
             Forecast from <a href="https://open-meteo.com/en/licence" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Forecast updated at: <span id="weather-timestamp">(loading)</span>.
         </div>
     </section>
 
-    <section class="events">
-        <h2>What's On at UYC</h2>
+    <section class="panel events">
+        <h2 class="section-heading">What's On at UYC</h2>
         <div class="events-list" id="events-list">
-            <div class="event-card">Loading events...</div>
+            <div class="card event-card">Loading events...</div>
         </div>
-        <div class="events-source">
+        <div class="source-note events-source">
             <a href="https://ullswateryachtclub.org/events?upcoming=true">Ullswater Yacht Club Calendar</a>. Updated at: <span id="events-timestamp">(loading)</span>.
         </div>
     </section>
@@ -392,7 +392,7 @@
                     eventsList.innerHTML = "";
 
                     if (!data.events || data.events.length === 0) {
-                        eventsList.innerHTML = `<div class="event-card">No public events listed for the next 7 days.</div>`;
+                        eventsList.innerHTML = `<div class="card event-card">No public events listed for the next 7 days.</div>`;
                     } else {
                         data.events.forEach(event => {
                             const badge = eventDateBadge(event);
@@ -400,10 +400,10 @@
                             const description = truncateText(fullDescription, 220);
                             const isTruncatedDescription = fullDescription.length > description.length;
                             const card = document.createElement("article");
-                            card.className = "event-card";
+                            card.className = "card event-card";
                             card.innerHTML = `
                                 <div class="event-when" aria-label="${escapeHtml(formatEventDateRange(event))}">
-                                    <div class="event-date" aria-hidden="true">
+                                    <div class="date-badge event-date" aria-hidden="true">
                                         <span class="event-date-day">${escapeHtml(badge.day)}</span>
                                         <span class="event-date-number">${escapeHtml(badge.number)}</span>
                                         <span class="event-date-month">${escapeHtml(badge.month)}</span>
@@ -462,7 +462,7 @@
                     }
                 })
                 .catch(() => {
-                    eventsList.innerHTML = `<div class="event-card">Events unavailable</div>`;
+                    eventsList.innerHTML = `<div class="card event-card">Events unavailable</div>`;
                     events_timestamp.textContent = "(error)";
                 });
             }
@@ -482,7 +482,7 @@
                 const missingFields = requiredFields.filter(field => !hourly || !hourly[field]);
 
                 if (missingFields.length > 0) {
-                    container.innerHTML = `<div class="weather-hour">Hourly wind unavailable</div>`;
+                    container.innerHTML = `<div class="card weather-hour">Hourly wind unavailable</div>`;
                     return;
                 }
 
@@ -512,7 +512,7 @@
                     });
 
                     const card = document.createElement("div");
-                    card.className = isNow ? "weather-hour is-now" : "weather-hour";
+                    card.className = isNow ? "card weather-hour is-now" : "card weather-hour";
                     card.innerHTML = `
                         <div class="weather-hour-top">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</div>
                         <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust ${gustMph}</span></div>
@@ -522,7 +522,7 @@
                 });
 
                 if (container.children.length === 0) {
-                    container.innerHTML = `<div class="weather-hour">Hourly wind unavailable</div>`;
+                    container.innerHTML = `<div class="card weather-hour">Hourly wind unavailable</div>`;
                 }
             }
 
@@ -579,10 +579,10 @@
                         const desc = weatherDescription(daily.weather_code[i]);
 
                         const card = document.createElement("div");
-                        card.className = "weather-day";
+                        card.className = "card weather-day";
                         card.innerHTML = `
                             <div class="weather-day-head">
-                                <div class="weather-day-date" aria-hidden="true">
+                                <div class="date-badge weather-day-date" aria-hidden="true">
                                     <span class="weather-day-date-weekday">${weekday}</span>
                                     <span class="weather-day-date-number">${dayNumber}</span>
                                     <span class="weather-day-date-month">${month}</span>

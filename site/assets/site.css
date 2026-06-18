@@ -10,6 +10,17 @@
     --text: #17324d;
     --muted: #5f7488;
     --border: #cfe0ef;
+    --content-width: 900px;
+    --space-section: 1.25rem;
+    --space-panel: 1rem;
+    --space-card: 0.75rem;
+    --space-grid: 0.75rem;
+    --radius-panel: 0.75rem;
+    --radius-card: 0.5rem;
+    --radius-badge: 0.45rem;
+    --radius-pill: 999px;
+    --shadow-panel: 0 6px 18px rgba(21, 61, 98, 0.12);
+    --shadow-card: 0 1px 3px rgba(21, 61, 98, 0.08);
 }
 
 html, body {
@@ -117,43 +128,67 @@ header::before {
     padding: 0.65rem 0.5rem 1rem 0.5rem;
 }
 
-.weather {
-    max-width: 900px;
-    margin: 0 auto 1.25rem auto;
-    padding: 1rem;
+.panel {
+    max-width: var(--content-width);
+    margin: 0 auto var(--space-section) auto;
+    padding: var(--space-panel);
     background: var(--panel-bg);
     border: 1px solid var(--border);
-    border-top: 5px solid var(--uyc-blue);
-    border-radius: 0.75rem;
-    box-shadow: 0 6px 18px rgba(21, 61, 98, 0.12);
+    border-top: 5px solid var(--panel-accent, var(--uyc-blue));
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-panel);
 }
 
-.events {
-    max-width: 900px;
-    margin: 0 auto 1.25rem auto;
-    padding: 1rem;
-    background: var(--panel-bg);
+.card {
+    background: var(--card-bg);
     border: 1px solid var(--border);
-    border-top: 5px solid var(--uyc-yellow);
-    border-radius: 0.75rem;
-    box-shadow: 0 6px 18px rgba(21, 61, 98, 0.12);
+    border-radius: var(--radius-card);
+    padding: var(--space-card);
+    box-shadow: var(--shadow-card);
 }
 
-.events h2 {
+.section-heading {
     margin: 0 0 0.75rem 0;
     color: var(--uyc-blue-dark);
     font-size: 1.15rem;
     font-weight: 800;
 }
 
-.events h2::after {
+.section-heading::after {
     content: "";
     display: block;
     width: 3rem;
     height: 3px;
     margin: 0.35rem auto 0 auto;
     background: var(--uyc-yellow);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
+}
+
+.source-note {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.date-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--uyc-blue-light);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-badge);
+    color: var(--uyc-blue-dark);
+    font-weight: 800;
+    text-align: center;
+}
+
+.weather {
+    --panel-accent: var(--uyc-blue);
+}
+
+.events {
+    --panel-accent: var(--uyc-yellow);
 }
 
 .events-list {
@@ -168,11 +203,6 @@ header::before {
     grid-template-columns: auto 1fr;
     gap: 0.7rem;
     align-items: start;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
 }
 
 .event-when {
@@ -182,21 +212,11 @@ header::before {
 }
 
 .event-date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     box-sizing: border-box;
     width: 4.75rem;
     min-width: 4.75rem;
     padding: 0.42rem 0.34rem;
-    background: var(--uyc-blue-light);
-    border: 1px solid var(--border);
-    border-radius: 0.45rem;
-    color: var(--uyc-blue-dark);
-    font-weight: 800;
     line-height: 1.1;
-    text-align: center;
 }
 
 .event-time {
@@ -205,7 +225,7 @@ header::before {
     padding: 0.12rem 0.44rem;
     background: var(--uyc-yellow-soft);
     border: 1px solid var(--uyc-yellow);
-    border-radius: 0.45rem;
+    border-radius: var(--radius-badge);
     color: var(--uyc-blue-dark);
     font-size: 0.72rem;
     font-weight: 900;
@@ -284,29 +304,6 @@ header::before {
     content: " ";
 }
 
-.events-source {
-    margin-top: 0.75rem;
-    color: var(--muted);
-    font-size: 0.75rem;
-}
-
-.weather h2 {
-    margin: 0 0 0.75rem 0;
-    color: var(--uyc-blue-dark);
-    font-size: 1.15rem;
-    font-weight: 800;
-}
-
-.weather h2::after {
-    content: "";
-    display: block;
-    width: 3rem;
-    height: 3px;
-    margin: 0.35rem auto 0 auto;
-    background: var(--uyc-yellow);
-    border-radius: 999px;
-}
-
 .weather-heading-condition {
     color: var(--muted);
     font-weight: 800;
@@ -315,24 +312,13 @@ header::before {
 .weather-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-}
-
-.weather-grid > div,
-.weather-day,
-.weather-hour {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    box-shadow: 0 1px 3px rgba(21, 61, 98, 0.08);
+    gap: var(--space-grid);
 }
 
 .weather-grid > div {
     position: relative;
     overflow: hidden;
     text-align: left;
-    background: var(--card-bg);
 }
 
 .weather-grid > div::before {
@@ -451,13 +437,13 @@ header::before {
 
 .weather-hours::-webkit-scrollbar-track {
     background: var(--uyc-blue-light);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
 }
 
 .weather-hours::-webkit-scrollbar-thumb {
     background: linear-gradient(90deg, var(--uyc-blue), var(--uyc-blue-dark));
     border: 2px solid var(--uyc-blue-light);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
 }
 
 .weather-hours::-webkit-scrollbar-thumb:hover {
@@ -511,7 +497,7 @@ header::before {
     display: inline-block;
     padding: 0.08rem 0.32rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--uyc-blue-light);
     color: var(--uyc-blue-dark);
     font-size: 0.68rem;
@@ -552,14 +538,14 @@ header::before {
     vector-effect: non-scaling-stroke;
 }
 
-.weather h2.forecast-heading {
+.forecast-heading {
     margin: 1.5rem 0 0.75rem 0;
 }
 
 .weather-days {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
+    gap: var(--space-grid);
     margin-top: 0.75rem;
 }
 
@@ -570,7 +556,6 @@ header::before {
     flex-direction: column;
     gap: 0.65rem;
     text-align: left;
-    background: var(--card-bg);
 }
 
 .weather-day .weather-condition-icon {
@@ -587,19 +572,9 @@ header::before {
 }
 
 .weather-day-date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-width: 3.9rem;
     padding: 0.4rem 0.35rem;
-    background: var(--uyc-blue-light);
-    border: 1px solid var(--border);
-    border-radius: 0.45rem;
-    color: var(--uyc-blue-dark);
-    font-weight: 800;
     line-height: 1.05;
-    text-align: center;
 }
 
 .weather-day-date-weekday,
@@ -676,7 +651,7 @@ header::before {
     padding: 0.45rem 0.5rem;
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 0.45rem;
+    border-radius: var(--radius-badge);
 }
 
 .weather-stat-label {
@@ -718,7 +693,7 @@ header::before {
 .weather-links {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
+    gap: var(--space-grid);
     margin-top: 0.75rem;
 }
 
@@ -726,8 +701,8 @@ header::before {
     display: block;
     background: var(--uyc-blue);
     border: 1px solid var(--uyc-blue-dark);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
+    border-radius: var(--radius-card);
+    padding: var(--space-card);
     color: #fff;
     text-decoration: none;
     font-weight: 700;
@@ -742,14 +717,8 @@ header::before {
     outline-offset: 2px;
 }
 
-.weather-source {
-    margin-top: 0.75rem;
-    color: var(--muted);
-    font-size: 0.75rem;
-}
-
 .site-footer {
-    max-width: 900px;
+    max-width: var(--content-width);
     margin: 0 auto 1.5rem auto;
     padding: 0 1rem;
     color: var(--muted);
@@ -761,7 +730,7 @@ header::before {
     gap: 0.7rem;
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid var(--border);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-panel);
     padding: 0.8rem;
     box-shadow: 0 3px 10px rgba(21, 61, 98, 0.06);
 }
@@ -772,7 +741,7 @@ header::before {
     justify-content: center;
     gap: 0.35rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: 0.28rem 0.6rem;
     background: #fff;
     color: var(--uyc-blue-dark);
