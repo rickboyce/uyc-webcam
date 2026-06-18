@@ -45,11 +45,27 @@ jobs:
 
           cp -r site/. dist/
 
+          export SITE_CSS_VERSION="${GITHUB_SHA::12}"
+          SITE_CSS_PATH="dist/assets/site.${SITE_CSS_VERSION}.css"
+
+          mv dist/assets/site.css "${SITE_CSS_PATH}"
+
+          CSS_MARKER='href="/assets/site.css" data-build-href="/assets/site.__SITE_VERSION__.css"'
+          CSS_HREF="href=\"/assets/site.${SITE_CSS_VERSION}.css\""
+
+          if ! grep -Fq "${CSS_MARKER}" dist/index.html; then
+            echo "CSS build marker not found in dist/index.html" >&2
+            exit 1
+          fi
+
+          sed "s|${CSS_MARKER}|${CSS_HREF}|" dist/index.html > dist/index.html.tmp
+          mv dist/index.html.tmp dist/index.html
+
           npx --yes lightningcss-cli@1 \
             --minify \
             --targets "defaults" \
-            dist/assets/site.css \
-            -o dist/assets/site.css
+            "${SITE_CSS_PATH}" \
+            -o "${SITE_CSS_PATH}"
 
       - name: Configure rclone for Cloudflare R2
         run: |
