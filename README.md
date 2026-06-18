@@ -64,7 +64,7 @@ uyc-webcam/
 ├── site/
 ├── workers/
 │   ├── weather-refresh/
-│   └── events-refresh/
+│   └── events-refresh/ [![Test ICS conversion](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
 └── deploy/
     └── routeros/
 ```
