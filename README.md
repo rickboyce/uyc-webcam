@@ -69,6 +69,7 @@ uyc-webcam/
 ```
 
 ### `capture/`
+[![build-capture](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)
 
 Docker-based webcam capture tooling intended to run on a MikroTik RouterOS router.
 
@@ -88,7 +89,6 @@ Cloudflare Worker for refreshing weather data.
 Cloudflare Worker for refreshing upcoming Club events.
 
 ### `deploy/routeros/`
-[![build-capture](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)
 
 Example RouterOS configuration for deploying the capture tool using RouterOS Containers.
 

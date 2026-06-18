@@ -12,6 +12,10 @@
     <link rel="manifest" href="/assets/site.webmanifest">
     <meta name="theme-color" content="#0b5f8a">
 
+    <noscript>
+        <meta http-equiv="refresh" content="60">
+    </noscript>
+
     <link rel="stylesheet" href="/assets/site.css" data-build-href="/assets/site.__SITE_VERSION__.css">
 </head>
 <body>
@@ -23,13 +27,16 @@
         </div>
     </header>
 
-    <img id="webcam" src="/var/webcam.jpg" alt="Latest webcam image">
+    <img hidden id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
+    <noscript>
+        <img class="webcam-image" src="/var/webcam.jpg" alt="Latest webcam image">
+    </noscript>
 
     <div class="note">
-        Updates every 60 seconds. Latest image: <span id="webcam-timestamp">(loading)</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
+        Updates every 60 seconds. <span data-js-driven hidden>Latest image: <span id="webcam-timestamp">(loading)</span>.</span> This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
     </div>
 
-    <section class="panel weather">
+    <section class="panel weather" data-js-driven hidden>
         <h2 class="section-heading">Current Weather<span class="weather-heading-condition" id="weather-condition-heading"></span></h2>
 
         <div class="weather-grid">
@@ -68,7 +75,7 @@
         </div>
     </section>
 
-    <section class="panel events">
+    <section class="panel events" data-js-driven hidden>
         <h2 class="section-heading">What's On at UYC</h2>
         <div class="events-list" id="events-list">
             <div class="card event-card">Loading events...</div>

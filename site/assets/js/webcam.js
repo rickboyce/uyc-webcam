@@ -36,5 +36,7 @@ export function setupWebcam() {
     const timestamp = document.getElementById("webcam-timestamp");
 
     bindWebcamTimestamp(image, timestamp);
+    image.src = image.dataset.src;
+    image.hidden = false;
     setInterval(() => refreshWebcam(image), REFRESH_MS);
 }
