@@ -23,7 +23,10 @@
         </div>
     </header>
 
-    <img id="webcam" src="/var/webcam.jpg" alt="Latest webcam image">
+    <img id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
+    <noscript>
+        <img class="webcam-image" src="/var/webcam.jpg" alt="Latest webcam image">
+    </noscript>
 
     <div class="note">
         Updates every 60 seconds. Latest image: <span id="webcam-timestamp">(loading)</span>. This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.
