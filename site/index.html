@@ -226,6 +226,7 @@
             font-weight: 900;
             line-height: 1.15;
             text-align: center;
+            vertical-align: text-bottom;
             white-space: nowrap;
         }
 
@@ -251,10 +252,7 @@
         }
 
         .event-title {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.28rem 0.45rem;
+            display: block;
             margin: 0;
             color: var(--text);
             font-size: 1rem;
@@ -1396,7 +1394,7 @@
                                     </div>
                                 </div>
                                 <div class="event-content">
-                                    <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span><span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
+                                    <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span> <span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
                                     ${fullDescription ? `<div class="event-description${isTruncatedDescription ? " event-description-toggle" : ""}"${isTruncatedDescription ? ` role="button" tabindex="0" aria-expanded="false" data-short="${escapeHtml(description)}" data-full="${escapeHtml(fullDescription)}"` : ""}>${escapeHtml(description)}${isTruncatedDescription ? `<span class="event-description-more">Show more</span>` : ""}</div>` : ""}
                                 </div>
                             `;
