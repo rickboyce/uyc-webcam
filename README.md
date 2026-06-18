@@ -30,7 +30,7 @@ A few small background jobs keep things fresh:
 
 1. 📸 a RouterOS-hosted container captures the latest webcam image
 2. 🌦️ a Cloudflare Worker refreshes weather data
-3. 🗓️ a Cloudflare Worker refreshes upcoming Club events [![Test ICS conversion](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
+3. 🗓️ a Cloudflare Worker refreshes upcoming Club events
 4. 🪣 generated files are written to Cloudflare R2
 5. 🚀 Cloudflare serves the public site
 
@@ -50,9 +50,15 @@ Instead, the image is fetched privately, cached, and published to Cloudflare R2 
 
 The project has separate **test** and **production** environments.
 
-The `main` branch deploys to production.
+* The `main` branch deploys to production.
+* The `test` branch deploys to the test environment.
 
-The `test` branch deploys to the test environment.
+### Components
+
+* Worker - Weather [![deploy-worker-weather](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-weather.yml)
+* Worker - Events [![deploy-worker-events](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
+* Container - Webcam Capture [![build-capture](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)](https://github.com/rickboyce/uyc-webcam/actions/workflows/build-capture.yml)
+* Static Site [![deploy-site](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-site.yml)
 
 ---
 
