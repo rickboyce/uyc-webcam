@@ -21,6 +21,15 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Test ICS conversion
+        working-directory: workers/events-refresh
+        run: node --test test/*.test.mjs
+
       - name: Create test Worker secrets file
         if: github.ref_name == 'test'
         working-directory: workers/events-refresh

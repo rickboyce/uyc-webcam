@@ -125,10 +125,14 @@ async function updateEvents(env: Env): Promise<void> {
   );
 }
 
-function convertIcsTextToJson(icsText: string, sourceUrl: string) {
+export function convertIcsTextToJson(
+  icsText: string,
+  sourceUrl: string,
+  now = new Date()
+) {
   const lines = unfoldIcsLines(icsText);
 
-  const nowLocalParts = getDatePartsInTimeZone(new Date(), LOCAL_TZ);
+  const nowLocalParts = getDatePartsInTimeZone(now, LOCAL_TZ);
 
   const windowStart = zonedDateTimeToUtc(
     nowLocalParts.year,
@@ -220,7 +224,7 @@ function convertIcsTextToJson(icsText: string, sourceUrl: string) {
 
   return {
     schema_version: 1,
-    updated_at: toIsoZ(new Date()),
+    updated_at: toIsoZ(now),
     source_url: sourceUrl,
     timezone: UTC_TZ,
     floating_time_assumption: LOCAL_TZ,
