@@ -30,7 +30,7 @@ A few small background jobs keep things fresh:
 
 1. 📸 a RouterOS-hosted container captures the latest webcam image
 2. 🌦️ a Cloudflare Worker refreshes weather data
-3. 🗓️ a Cloudflare Worker refreshes upcoming Club events
+3. 🗓️ a Cloudflare Worker refreshes upcoming Club events [![Test ICS conversion](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
 4. 🪣 generated files are written to Cloudflare R2
 5. 🚀 Cloudflare serves the public site
 
@@ -64,7 +64,7 @@ uyc-webcam/
 ├── site/
 ├── workers/
 │   ├── weather-refresh/
-│   └── events-refresh/ [![Test ICS conversion](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml/badge.svg?branch=test)](https://github.com/rickboyce/uyc-webcam/actions/workflows/deploy-worker-events.yml)
+│   └── events-refresh/
 └── deploy/
     └── routeros/
 ```
