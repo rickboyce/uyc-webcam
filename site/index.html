@@ -217,7 +217,6 @@
         .event-time {
             display: inline-block;
             box-sizing: border-box;
-            margin-left: 0.45rem;
             padding: 0.18rem 0.44rem;
             background: var(--uyc-yellow-soft);
             border: 1px solid var(--uyc-yellow);
@@ -227,7 +226,7 @@
             font-weight: 900;
             line-height: 1.15;
             text-align: center;
-            vertical-align: middle;
+            vertical-align: 0.08em;
             white-space: nowrap;
         }
 
@@ -1395,7 +1394,7 @@
                                     </div>
                                 </div>
                                 <div class="event-content">
-                                    <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span><span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
+                                    <h3 class="event-title"><span class="event-title-text">${escapeHtml(event.title || "Untitled event")}</span> <span class="event-time">${escapeHtml(formatEventTime(event))}</span></h3>
                                     ${fullDescription ? `<div class="event-description${isTruncatedDescription ? " event-description-toggle" : ""}"${isTruncatedDescription ? ` role="button" tabindex="0" aria-expanded="false" data-short="${escapeHtml(description)}" data-full="${escapeHtml(fullDescription)}"` : ""}>${escapeHtml(description)}${isTruncatedDescription ? `<span class="event-description-more">Show more</span>` : ""}</div>` : ""}
                                 </div>
                             `;
