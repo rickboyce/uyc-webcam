@@ -33,12 +33,23 @@ jobs:
         run: |
           curl https://rclone.org/install.sh | sudo bash
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Prepare static files
         run: |
           rm -rf dist
           mkdir -p dist
 
           cp -r site/. dist/
+
+          npx --yes lightningcss-cli@1 \
+            --minify \
+            --targets "defaults" \
+            dist/assets/site.css \
+            -o dist/assets/site.css
 
       - name: Configure rclone for Cloudflare R2
         run: |
