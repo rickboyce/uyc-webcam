@@ -33,12 +33,59 @@ jobs:
         run: |
           curl https://rclone.org/install.sh | sudo bash
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Prepare static files
         run: |
           rm -rf dist
           mkdir -p dist
 
           cp -r site/. dist/
+
+          export SITE_VERSION="${GITHUB_SHA::12}"
+          SITE_CSS_PATH="dist/assets/site.${SITE_VERSION}.css"
+          SITE_JS_PATH="dist/assets/site.${SITE_VERSION}.js"
+
+          mv dist/assets/site.css "${SITE_CSS_PATH}"
+
+          CSS_MARKER='href="/assets/site.css" data-build-href="/assets/site.__SITE_VERSION__.css"'
+          CSS_HREF="href=\"/assets/site.${SITE_VERSION}.css\""
+          JS_MARKER='type="module" src="/assets/js/main.js" data-build-src="/assets/site.__SITE_VERSION__.js"'
+          JS_SRC="type=\"module\" src=\"/assets/site.${SITE_VERSION}.js\""
+
+          if ! grep -Fq "${CSS_MARKER}" dist/index.html; then
+            echo "CSS build marker not found in dist/index.html" >&2
+            exit 1
+          fi
+
+          sed "s|${CSS_MARKER}|${CSS_HREF}|" dist/index.html > dist/index.html.tmp
+          mv dist/index.html.tmp dist/index.html
+
+          if ! grep -Fq "${JS_MARKER}" dist/index.html; then
+            echo "JS build marker not found in dist/index.html" >&2
+            exit 1
+          fi
+
+          sed "s|${JS_MARKER}|${JS_SRC}|" dist/index.html > dist/index.html.tmp
+          mv dist/index.html.tmp dist/index.html
+
+          npx --yes lightningcss-cli@1 \
+            --minify \
+            --targets "defaults" \
+            "${SITE_CSS_PATH}" \
+            -o "${SITE_CSS_PATH}"
+
+          npx --yes esbuild@0.25.5 \
+            dist/assets/js/main.js \
+            --bundle \
+            --minify \
+            --format=esm \
+            --outfile="${SITE_JS_PATH}"
+
+          rm -rf dist/assets/js
 
       - name: Configure rclone for Cloudflare R2
         run: |

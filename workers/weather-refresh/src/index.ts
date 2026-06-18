@@ -111,7 +111,8 @@ function buildWeatherApiUrl(): string {
       "weather_code",
       "wind_speed_10m",
       "wind_gusts_10m",
-      "wind_direction_10m"
+      "wind_direction_10m",
+      "is_day"
     ].join(",")
   );
 
