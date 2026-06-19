@@ -24,9 +24,6 @@ jobs:
       - name: Create Worker secrets file
         working-directory: workers/weather-refresh
         run: |
-          : "${CLOUDFLARE_ZONE_ID:?Missing CLOUDFLARE_ZONE_ID secret}"
-          : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_WORKER_API_TOKEN secret}"
-
           python3 - <<'PY'
           import json
           import os
