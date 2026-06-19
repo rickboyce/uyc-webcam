@@ -66,13 +66,6 @@ export default {
 };
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  if (env.ENVIRONMENT !== "test") {
-    return Response.json(
-      { ok: false, error: "Manual refresh is only enabled for test" },
-      { status: 403 }
-    );
-  }
-
   const expectedAuth = `Bearer ${env.REFRESH_TOKEN}`;
   const actualAuth = request.headers.get("authorization");
 
