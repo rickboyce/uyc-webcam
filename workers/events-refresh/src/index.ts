@@ -60,7 +60,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === "POST" && isManualRefreshPath(url.pathname, env)) {
+    if (isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
 
