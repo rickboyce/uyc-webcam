@@ -325,7 +325,7 @@ function renderCurrentWeather(elements, data) {
 
     elements.conditionHeading.textContent = ` \u2013 ${currentWeatherDescription}`;
     elements.now.innerHTML =
-        `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels ${feels}&deg;C</span>`;
+        `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels like ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
         `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
