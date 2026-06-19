@@ -233,8 +233,8 @@ function renderHourlyWind(hours, data) {
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
             <div class="weather-hour-top">
-                <span class="weather-hour-meta">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
-                ${hourlyWeatherIconMarkup(hourly.weather_code[index], description)}
+                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description)}<span class="weather-hour-time">${isNow ? "Now" : label}</span></span>
+                <span class="weather-hour-wind">${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
             </div>
             <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
         `;
