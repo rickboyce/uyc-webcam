@@ -4,9 +4,11 @@ const WEATHER_PATH = "/var/weather.json";
 const REFRESH_MS = 300_000;
 const WEATHER_DAY_CLASS = "card weather-day";
 const WEATHER_HOUR_CLASS = "card weather-hour";
+const WEATHER_ICON_BASE_URL = "https://cdn.meteocons.com/3.0.0-next.10/svg/flat";
 const RAIN_RISK_HOURS = 3;
 const REQUIRED_HOURLY_FIELDS = [
     "time",
+    "weather_code",
     "wind_speed_10m",
     "wind_gusts_10m",
     "wind_direction_10m"
@@ -90,7 +92,7 @@ function weatherIconName(code, isDay = true) {
 }
 
 function meteoconMarkup(iconName, description) {
-    return `<img class="weather-condition-icon" src="https://cdn.meteocons.com/3.0.0-next.10/svg/flat/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+    return `<img class="weather-condition-icon" src="${WEATHER_ICON_BASE_URL}/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
 }
 
 function windIconMarkup(iconName, description, beaufortForce) {
@@ -99,6 +101,10 @@ function windIconMarkup(iconName, description, beaufortForce) {
 
 function weatherIconMarkup(code, description, isDay = true) {
     return meteoconMarkup(weatherIconName(code, isDay), description);
+}
+
+function hourlyWeatherIconMarkup(code, description) {
+    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE_URL}/${weatherIconName(code)}.svg" alt="" aria-hidden="true" title="${description}">`;
 }
 
 function beaufortScaleFromMph(mph) {
@@ -214,6 +220,7 @@ function renderHourlyWind(hours, data) {
         const speedMph = Math.round(hourly.wind_speed_10m[index]);
         const gustMph = Math.round(hourly.wind_gusts_10m[index]);
         const direction = compassDirection(hourly.wind_direction_10m[index]);
+        const description = weatherDescription(hourly.weather_code[index]);
         const isNow = hourDate.getTime() === nowHour.getTime();
         const label = hourDate.toLocaleTimeString(USER_LOCALE, {
             hour: "2-digit",
@@ -223,7 +230,10 @@ function renderHourlyWind(hours, data) {
         const card = document.createElement("div");
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
-            <div class="weather-hour-top">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</div>
+            <div class="weather-hour-top">
+                <span class="weather-hour-meta">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
+                ${hourlyWeatherIconMarkup(hourly.weather_code[index], description)}
+            </div>
             <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
         `;
 
