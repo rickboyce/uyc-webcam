@@ -10,13 +10,23 @@ export async function isAccessRequestAuthorized(
   request: Request,
   env: AccessAuthEnv
 ): Promise<boolean> {
-  return true;
   if (!env.ACCESS_AUD || !env.ACCESS_JWKS_URL) {
     console.log(`[${env.ENVIRONMENT}] Access JWT validation skipped: missing configuration`);
     return false;
   }
 
   const token = request.headers.get("cf-access-jwt-assertion");
+
+  console.log(`[${env.ENVIRONMENT}] Access auth diagnostic`, {
+    hasJwt: !!token,
+    hasAccessClientId: !!request.headers.get("cf-access-client-id"),
+    hasAccessClientSecret: !!request.headers.get("cf-access-client-secret"),
+    hasAccessAud: !!env.ACCESS_AUD,
+    hasAccessJwksUrl: !!env.ACCESS_JWKS_URL,
+    jwksOrigin: env.ACCESS_JWKS_URL
+      ? new URL(env.ACCESS_JWKS_URL).origin
+      : null,
+  });
 
   if (!token) {
     return false;
