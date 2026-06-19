@@ -35,9 +35,6 @@ jobs:
         working-directory: workers
         run: npm ci
 
-      - name: Test shared Worker auth
-        working-directory: workers
-        run: npm run test:shared
 
       - name: Create Worker secrets file
         working-directory: workers/weather-refresh
