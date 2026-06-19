@@ -12,6 +12,7 @@
     --muted: #5f7488;
     --border: #cfe0ef;
     --content-width: 900px;
+    --content-box-width: calc(var(--content-width) + (var(--space-panel) * 2) + 2px);
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
     --space-md: 0.75rem;
@@ -141,15 +142,23 @@ header::before {
 }
 
 .note {
+    box-sizing: border-box;
+    max-width: var(--content-box-width);
+    margin: var(--space-xs) auto var(--space-sm) auto;
+    padding: 0.55rem 0.75rem;
+    background: rgba(255, 255, 255, 0.44);
+    border: 1px solid rgba(207, 224, 239, 0.72);
+    border-radius: var(--radius-panel);
     font-size: 0.72rem;
     line-height: 1.42;
     color: var(--muted);
-    padding: 0.65rem 0.5rem 1rem 0.5rem;
+    text-align: center;
 }
 
 /* Primitives */
 .panel {
-    max-width: var(--content-width);
+    box-sizing: border-box;
+    max-width: var(--content-box-width);
     margin: 0 auto var(--space-section) auto;
     padding: var(--space-panel);
     background: var(--panel-bg);
@@ -775,9 +784,9 @@ header::before {
 
 /* Footer */
 .site-footer {
-    max-width: var(--content-width);
+    box-sizing: border-box;
+    max-width: var(--content-box-width);
     margin: 0 auto 1.5rem auto;
-    padding: 0 1rem;
     color: var(--muted);
     font-size: 0.78rem;
 }
