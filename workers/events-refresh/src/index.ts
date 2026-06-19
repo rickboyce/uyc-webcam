@@ -19,6 +19,9 @@ type Env = {
   UYC_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "test";
   EVENTS_OBJECT_KEY?: string;
+  CACHE_PURGE_URL?: string;
+  CLOUDFLARE_ZONE_ID?: string;
+  CLOUDFLARE_API_TOKEN?: string;
   REFRESH_TOKEN?: string;
 };
 
@@ -113,9 +116,38 @@ async function updateEvents(env: Env): Promise<void> {
     }
   );
 
+  await purgeCloudflareCache(env);
+
   console.log(
     `[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`
   );
+}
+
+async function purgeCloudflareCache(env: Env): Promise<void> {
+  if (!env.CACHE_PURGE_URL || !env.CLOUDFLARE_ZONE_ID || !env.CLOUDFLARE_API_TOKEN) {
+    console.log(`[${env.ENVIRONMENT}] Cloudflare cache purge skipped: missing configuration`);
+    return;
+  }
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/zones/${env.CLOUDFLARE_ZONE_ID}/purge_cache`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        files: [env.CACHE_PURGE_URL]
+      })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Cloudflare cache purge failed: ${response.status} ${response.statusText}`);
+  }
+
+  console.log(`[${env.ENVIRONMENT}] Purged Cloudflare cache for ${env.CACHE_PURGE_URL}`);
 }
 
 export function convertIcsTextToJson(
