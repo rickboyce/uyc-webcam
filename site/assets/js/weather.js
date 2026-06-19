@@ -224,7 +224,7 @@ function renderHourlyWind(hours, data) {
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
             <div class="weather-hour-top">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</div>
-            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust max ${gustMph}</span></div>
+            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
         `;
 
         hours.appendChild(card);
@@ -315,7 +315,7 @@ function renderCurrentWeather(elements, data) {
     elements.now.innerHTML =
         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gust max ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
         `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }
