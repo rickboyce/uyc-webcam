@@ -30,8 +30,7 @@ jobs:
         working-directory: workers/events-refresh
         run: node --test test/*.test.mjs
 
-      - name: Create test Worker secrets file
-        if: github.ref_name == 'test'
+      - name: Create Worker secrets file
         working-directory: workers/events-refresh
         run: |
           python3 - <<'PY'
@@ -41,23 +40,28 @@ jobs:
           with open("worker-secrets.json", "w", encoding="utf-8") as f:
               json.dump(
                   {
-                      "REFRESH_TOKEN": os.environ["TEST_EVENTS_REFRESH_TOKEN"]
+                      "REFRESH_TOKEN": os.environ["EVENTS_REFRESH_TOKEN"]
                   },
                   f
               )
           PY
         env:
-          TEST_EVENTS_REFRESH_TOKEN: ${{ secrets.TEST_WORKER_REFRESH_TOKEN }}
+          EVENTS_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}
 
       - name: Set Worker deployment environment
         run: |
           if [ "${GITHUB_REF_NAME}" = "test" ]; then
             echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc -e test --secrets-file worker-secrets.json" >> "$GITHUB_ENV"
             echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc -e test" >> "$GITHUB_ENV"
+            echo "EVENTS_REFRESH_URL=${TEST_EVENTS_REFRESH_URL}/refresh" >> "$GITHUB_ENV"
           else
-            echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc" >> "$GITHUB_ENV"
+            echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc --secrets-file worker-secrets.json" >> "$GITHUB_ENV"
             echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc" >> "$GITHUB_ENV"
+            echo "EVENTS_REFRESH_URL=${PROD_EVENTS_REFRESH_URL}/refresh" >> "$GITHUB_ENV"
           fi
+        env:
+          TEST_EVENTS_REFRESH_URL: ${{ secrets.TEST_EVENTS_REFRESH_URL }}
+          PROD_EVENTS_REFRESH_URL: ${{ secrets.PROD_EVENTS_REFRESH_URL }}
 
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
@@ -77,14 +81,12 @@ jobs:
           wranglerVersion: "4"
           command: ${{ env.WRANGLER_TRIGGERS_COMMAND }}
 
-      - name: Trigger test events refresh
-        if: github.ref_name == 'test'
+      - name: Trigger events refresh
         run: |
           curl --fail --silent --show-error --location \
             --retry 3 \
             --request POST \
-            --header "Authorization: Bearer ${TEST_EVENTS_REFRESH_TOKEN}" \
-            "${TEST_EVENTS_REFRESH_URL}"
+            --header "Authorization: Bearer ${EVENTS_REFRESH_TOKEN}" \
+            "${EVENTS_REFRESH_URL}"
         env:
-          TEST_EVENTS_REFRESH_TOKEN: ${{ secrets.TEST_WORKER_REFRESH_TOKEN }}
-          TEST_EVENTS_REFRESH_URL: ${{ secrets.TEST_EVENTS_REFRESH_URL }}/refresh
+          EVENTS_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}

@@ -3,7 +3,7 @@
   "name": "uyc-webcam-events-refresh",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-17",
-  "workers_dev": false,
+  "workers_dev": true,
 
   "triggers": {
     "crons": [
