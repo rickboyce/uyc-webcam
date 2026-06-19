@@ -98,7 +98,7 @@ jobs:
         run: |
           curl --fail --silent --show-error --location \
             --retry 3 \
-            --request POST \
+            --request GET \
             --header "CF-Access-Client-Id: ${CLOUDFLARE_ACCESS_CLIENT_ID}" \
             --header "CF-Access-Client-Secret: ${CLOUDFLARE_ACCESS_CLIENT_SECRET}" \
             "${WEATHER_REFRESH_URL}"
