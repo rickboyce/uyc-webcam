@@ -4,8 +4,13 @@ const WEATHER_PATH = "/var/weather.json";
 const REFRESH_MS = 300_000;
 const WEATHER_DAY_CLASS = "card weather-day";
 const WEATHER_HOUR_CLASS = "card weather-hour";
+const WEATHER_ICON_BASE = "https://cdn.meteocons.com/3.0.0-next.10/svg";
+const WEATHER_ICON_MONOCHROME_SET = "monochrome";
+const WEATHER_ICON_COLOUR_SET = "fill";
+const RAIN_RISK_HOURS = 3;
 const REQUIRED_HOURLY_FIELDS = [
     "time",
+    "weather_code",
     "wind_speed_10m",
     "wind_gusts_10m",
     "wind_direction_10m"
@@ -88,8 +93,8 @@ function weatherIconName(code, isDay = true) {
     return dayNightIcons[code] || icons[code] || "not-available";
 }
 
-function meteoconMarkup(iconName, description) {
-    return `<img class="weather-condition-icon" src="https://cdn.meteocons.com/3.0.0-next.10/svg/flat/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+function meteoconMarkup(iconName, description, set = WEATHER_ICON_COLOUR_SET) {
+    return `<img class="weather-condition-icon" src="${WEATHER_ICON_BASE}/${set}/${iconName}.svg" alt="${description}" aria-hidden="true" title="${description}">`;
 }
 
 function windIconMarkup(iconName, description, beaufortForce) {
@@ -98,6 +103,10 @@ function windIconMarkup(iconName, description, beaufortForce) {
 
 function weatherIconMarkup(code, description, isDay = true) {
     return meteoconMarkup(weatherIconName(code, isDay), description);
+}
+
+function hourlyWeatherIconMarkup(code, description) {
+    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE}/${WEATHER_ICON_MONOCHROME_SET}/${weatherIconName(code)}.svg" alt="" aria-hidden="true" title="${description}">`;
 }
 
 function beaufortScaleFromMph(mph) {
@@ -132,6 +141,33 @@ function windsockIconName(mph) {
     }
 
     return "windsock";
+}
+
+function shortTermRainRisk(hourly, now = new Date()) {
+    if (!hourly || !Array.isArray(hourly.time) || !Array.isArray(hourly.precipitation_probability)) {
+        return null;
+    }
+
+    const nextHourIndexes = hourly.time
+        .map((timeText, index) => ({
+            hourDate: new Date(timeText),
+            index
+        }))
+        .filter(({ hourDate }) => !Number.isNaN(hourDate.getTime()) && hourDate > now)
+        .slice(0, RAIN_RISK_HOURS)
+        .map(({ index }) => index);
+
+    if (nextHourIndexes.length < RAIN_RISK_HOURS) {
+        return null;
+    }
+
+    const probabilities = nextHourIndexes.map(index => Number(hourly.precipitation_probability[index]));
+
+    if (probabilities.some(probability => !Number.isFinite(probability))) {
+        throw new Error("Hourly precipitation probability unavailable for next 3 hours");
+    }
+
+    return Math.round(Math.max(...probabilities));
 }
 
 function temperatureIconName(celsius) {
@@ -186,6 +222,7 @@ function renderHourlyWind(hours, data) {
         const speedMph = Math.round(hourly.wind_speed_10m[index]);
         const gustMph = Math.round(hourly.wind_gusts_10m[index]);
         const direction = compassDirection(hourly.wind_direction_10m[index]);
+        const description = weatherDescription(hourly.weather_code[index]);
         const isNow = hourDate.getTime() === nowHour.getTime();
         const label = hourDate.toLocaleTimeString(USER_LOCALE, {
             hour: "2-digit",
@@ -195,8 +232,11 @@ function renderHourlyWind(hours, data) {
         const card = document.createElement("div");
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
-            <div class="weather-hour-top">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</div>
-            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust ${gustMph}</span></div>
+            <div class="weather-hour-top">
+                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description)}<span class="weather-hour-time">${isNow ? "Now" : label}</span></span>
+                <span class="weather-hour-wind">${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
+            </div>
+            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
         `;
 
         hours.appendChild(card);
@@ -272,24 +312,24 @@ function renderForecastDays(days, daily) {
 
 function renderCurrentWeather(elements, data) {
     const current = data.current;
-    const daily = data.daily;
+    const hourly = data.hourly;
     const temp = Math.round(current.temperature_2m);
     const feels = Math.round(current.apparent_temperature);
     const windMph = Math.round(current.wind_speed_10m);
     const gustMph = Math.round(current.wind_gusts_10m);
     const windDir = compassDirection(current.wind_direction_10m);
-    const rainToday = daily.precipitation_probability_max[0];
+    const rainRisk = shortTermRainRisk(hourly);
     const currentWeatherDescription = weatherDescription(current.weather_code);
     const currentIsDay = current.is_day === undefined ? true : isDaytime(current.is_day);
     const beaufortForce = beaufortScaleFromMph(windMph);
 
     elements.conditionHeading.textContent = ` \u2013 ${currentWeatherDescription}`;
     elements.now.innerHTML =
-        `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels ${feels}&deg;C</span>`;
+        `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels like ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
-        `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
+        `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }
 
 async function refreshWeather(elements) {
