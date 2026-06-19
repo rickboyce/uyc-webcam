@@ -4,7 +4,9 @@ const WEATHER_PATH = "/var/weather.json";
 const REFRESH_MS = 300_000;
 const WEATHER_DAY_CLASS = "card weather-day";
 const WEATHER_HOUR_CLASS = "card weather-hour";
-const WEATHER_ICON_BASE_URL = "https://cdn.meteocons.com/3.0.0-next.10/svg/flat";
+const WEATHER_ICON_BASE = "https://cdn.meteocons.com/3.0.0-next.10/svg";
+const WEATHER_ICON_MONOCHROME_SET = "monochrome";
+const WEATHER_ICON_COLOUR_SET = "fill";
 const RAIN_RISK_HOURS = 3;
 const REQUIRED_HOURLY_FIELDS = [
     "time",
@@ -91,8 +93,8 @@ function weatherIconName(code, isDay = true) {
     return dayNightIcons[code] || icons[code] || "not-available";
 }
 
-function meteoconMarkup(iconName, description) {
-    return `<img class="weather-condition-icon" src="${WEATHER_ICON_BASE_URL}/${iconName}.svg" alt="" aria-hidden="true" title="${description}">`;
+function meteoconMarkup(iconName, description, set = WEATHER_ICON_COLOUR_SET) {
+    return `<img class="weather-condition-icon" src="${WEATHER_ICON_BASE}/${set}/${iconName}.svg" alt="${description}" aria-hidden="true" title="${description}">`;
 }
 
 function windIconMarkup(iconName, description, beaufortForce) {
@@ -104,7 +106,7 @@ function weatherIconMarkup(code, description, isDay = true) {
 }
 
 function hourlyWeatherIconMarkup(code, description) {
-    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE_URL}/${weatherIconName(code)}.svg" alt="" aria-hidden="true" title="${description}">`;
+    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE}/${WEATHER_ICON_MONOCHROME_SET}/${weatherIconName(code)}.svg" alt="" aria-hidden="true" title="${description}">`;
 }
 
 function beaufortScaleFromMph(mph) {
