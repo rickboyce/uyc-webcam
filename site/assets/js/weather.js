@@ -11,6 +11,7 @@ const RAIN_RISK_HOURS = 3;
 const REQUIRED_HOURLY_FIELDS = [
     "time",
     "weather_code",
+    "is_day",
     "wind_speed_10m",
     "wind_gusts_10m",
     "wind_direction_10m"
@@ -105,8 +106,8 @@ function weatherIconMarkup(code, description, isDay = true) {
     return meteoconMarkup(weatherIconName(code, isDay), description);
 }
 
-function hourlyWeatherIconMarkup(code, description) {
-    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE}/${WEATHER_ICON_MONOCHROME_SET}/${weatherIconName(code)}.svg" alt="" aria-hidden="true" title="${description}">`;
+function hourlyWeatherIconMarkup(code, description, isDay = true) {
+    return `<img class="weather-hour-icon" src="${WEATHER_ICON_BASE}/${WEATHER_ICON_MONOCHROME_SET}/${weatherIconName(code, isDay)}.svg" alt="" aria-hidden="true" title="${description}">`;
 }
 
 function beaufortScaleFromMph(mph) {
@@ -223,6 +224,7 @@ function renderHourlyWind(hours, data) {
         const gustMph = Math.round(hourly.wind_gusts_10m[index]);
         const direction = compassDirection(hourly.wind_direction_10m[index]);
         const description = weatherDescription(hourly.weather_code[index]);
+        const isDay = isDaytime(hourly.is_day[index]);
         const isNow = hourDate.getTime() === nowHour.getTime();
         const label = hourDate.toLocaleTimeString(USER_LOCALE, {
             hour: "2-digit",
@@ -233,7 +235,7 @@ function renderHourlyWind(hours, data) {
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
             <div class="weather-hour-top">
-                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description)}<span class="weather-hour-time">${isNow ? "Now" : label}</span></span>
+                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description, isDay)}<span class="weather-hour-time">${isNow ? "Now" : label}</span></span>
                 <span class="weather-hour-wind">${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
             </div>
             <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
