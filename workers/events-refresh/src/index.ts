@@ -1,3 +1,5 @@
+import { isAccessRequestAuthorized } from "../../shared/access-auth.ts";
+
 const CALENDAR_URL =
   "https://ullswateryachtclub.org/feeds/058aba17-c338-480a-b7e7-396cb2a081a7.ics";
 
@@ -5,6 +7,7 @@ const LOCAL_TZ = "Europe/London";
 const UTC_TZ = "UTC";
 const LOOKAHEAD_DAYS = 7;
 const EVENTS_OBJECT_KEY_DEFAULT = "var/events7day.json";
+const EVENTS_WORKER_PATH = "events-worker";
 
 // The UYC feed currently marks at least one cancelled event only in SUMMARY,
 // rather than with STATUS:CANCELLED. Keep this configurable in case the title
@@ -22,7 +25,8 @@ type Env = {
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
-  REFRESH_TOKEN?: string;
+  ACCESS_AUD?: string;
+  ACCESS_JWKS_URL?: string;
 };
 
 type IcsParams = Record<string, string>;
@@ -56,7 +60,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === "POST" && url.pathname === "/refresh") {
+    if (request.method === "POST" && isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
 
@@ -68,11 +72,15 @@ export default {
   }
 };
 
-async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  const expectedAuth = `Bearer ${env.REFRESH_TOKEN}`;
-  const actualAuth = request.headers.get("authorization");
+function isManualRefreshPath(pathname: string, env: Env): boolean {
+  return (
+    pathname === "/refresh" ||
+    pathname === `/${env.ENVIRONMENT}/${EVENTS_WORKER_PATH}/refresh`
+  );
+}
 
-  if (!env.REFRESH_TOKEN || actualAuth !== expectedAuth) {
+async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
+  if (!(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }

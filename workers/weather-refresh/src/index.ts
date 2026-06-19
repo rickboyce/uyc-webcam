@@ -1,6 +1,9 @@
+import { isAccessRequestAuthorized } from "../../shared/access-auth.ts";
+
 const LATITUDE = "54.5950";
 const LONGITUDE = "-2.8412";
 const WEATHER_OBJECT_KEY_DEFAULT = "var/weather.json";
+const WEATHER_WORKER_PATH = "weather-worker";
 
 type Env = {
   UYC_BUCKET: R2Bucket;
@@ -9,7 +12,8 @@ type Env = {
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
-  REFRESH_TOKEN?: string;
+  ACCESS_AUD?: string;
+  ACCESS_JWKS_URL?: string;
 };
 
 export default {
@@ -21,7 +25,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === "POST" && url.pathname === "/refresh") {
+    if (request.method === "POST" && isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
 
@@ -33,11 +37,15 @@ export default {
   }
 };
 
-async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  const expectedAuth = `Bearer ${env.REFRESH_TOKEN}`;
-  const actualAuth = request.headers.get("authorization");
+function isManualRefreshPath(pathname: string, env: Env): boolean {
+  return (
+    pathname === "/refresh" ||
+    pathname === `/${env.ENVIRONMENT}/${WEATHER_WORKER_PATH}/refresh`
+  );
+}
 
-  if (!env.REFRESH_TOKEN || actualAuth !== expectedAuth) {
+async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
+  if (!(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }

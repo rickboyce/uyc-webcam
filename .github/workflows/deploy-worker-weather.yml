@@ -7,6 +7,9 @@ on:
       - test
     paths:
       - 'workers/weather-refresh/**'
+      - 'workers/shared/**'
+      - 'workers/package.json'
+      - 'workers/package-lock.json'
   workflow_dispatch:
 
 permissions:
@@ -21,6 +24,21 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: workers/package-lock.json
+
+      - name: Install dependencies
+        working-directory: workers
+        run: npm ci
+
+      - name: Test shared Worker auth
+        working-directory: workers
+        run: npm run test:shared
+
       - name: Create Worker secrets file
         working-directory: workers/weather-refresh
         run: |
@@ -28,35 +46,35 @@ jobs:
           import json
           import os
 
+          secrets = {
+              "CLOUDFLARE_ZONE_ID": os.environ["CLOUDFLARE_ZONE_ID"],
+              "CLOUDFLARE_API_TOKEN": os.environ["CLOUDFLARE_API_TOKEN"],
+              "ACCESS_AUD": os.environ["WORKERS_ACCESS_AUD"],
+              "ACCESS_JWKS_URL": os.environ["CLOUDFLARE_ACCESS_JWKS_URL"]
+          }
+
           with open("worker-secrets.json", "w", encoding="utf-8") as f:
-              json.dump(
-                  {
-                      "REFRESH_TOKEN": os.environ["WEATHER_REFRESH_TOKEN"],
-                      "CLOUDFLARE_ZONE_ID": os.environ["CLOUDFLARE_ZONE_ID"],
-                      "CLOUDFLARE_API_TOKEN": os.environ["CLOUDFLARE_API_TOKEN"]
-                  },
-                  f
-              )
+              json.dump(secrets, f)
           PY
         env:
-          WEATHER_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          WORKERS_ACCESS_AUD: ${{ secrets.WORKERS_ACCESS_AUD }}
+          CLOUDFLARE_ACCESS_JWKS_URL: ${{ secrets.CLOUDFLARE_ACCESS_JWKS_URL }}
 
       - name: Set Worker deployment environment
         run: |
           if [ "${GITHUB_REF_NAME}" = "test" ]; then
             echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc -e test --secrets-file worker-secrets.json" >> "$GITHUB_ENV"
             echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc -e test" >> "$GITHUB_ENV"
-            echo "WEATHER_REFRESH_URL=${TEST_WEATHER_REFRESH_URL}/refresh" >> "$GITHUB_ENV"
+            WORKER_ENVIRONMENT="test"
           else
             echo "WRANGLER_DEPLOY_COMMAND=deploy src/index.ts --config wrangler.jsonc --secrets-file worker-secrets.json" >> "$GITHUB_ENV"
             echo "WRANGLER_TRIGGERS_COMMAND=triggers deploy --config wrangler.jsonc" >> "$GITHUB_ENV"
-            echo "WEATHER_REFRESH_URL=${PROD_WEATHER_REFRESH_URL}/refresh" >> "$GITHUB_ENV"
+            WORKER_ENVIRONMENT="prod"
           fi
-        env:
-          TEST_WEATHER_REFRESH_URL: ${{ secrets.TEST_WEATHER_REFRESH_URL }}
-          PROD_WEATHER_REFRESH_URL: ${{ secrets.PROD_WEATHER_REFRESH_URL }}
+
+          echo "WEATHER_REFRESH_URL=https://workers.uyc.boats/${WORKER_ENVIRONMENT}/weather-worker/refresh" >> "$GITHUB_ENV"
 
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
@@ -81,7 +99,9 @@ jobs:
           curl --fail --silent --show-error --location \
             --retry 3 \
             --request POST \
-            --header "Authorization: Bearer ${WEATHER_REFRESH_TOKEN}" \
+            --header "CF-Access-Client-Id: ${CLOUDFLARE_ACCESS_CLIENT_ID}" \
+            --header "CF-Access-Client-Secret: ${CLOUDFLARE_ACCESS_CLIENT_SECRET}" \
             "${WEATHER_REFRESH_URL}"
         env:
-          WEATHER_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
