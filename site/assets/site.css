@@ -615,7 +615,11 @@ header::before {
 }
 
 .forecast-heading {
-    margin: 1.5rem 0 var(--space-md) 0;
+    margin: var(--space-panel) 0 var(--space-md) 0;
+}
+
+.weather-hourly + .forecast-heading {
+    margin-top: var(--space-xs);
 }
 
 .weather-days {
