@@ -4,6 +4,7 @@ const WEATHER_PATH = "/var/weather.json";
 const REFRESH_MS = 300_000;
 const WEATHER_DAY_CLASS = "card weather-day";
 const WEATHER_HOUR_CLASS = "card weather-hour";
+const RAIN_RISK_HOURS = 3;
 const REQUIRED_HOURLY_FIELDS = [
     "time",
     "wind_speed_10m",
@@ -134,6 +135,33 @@ function windsockIconName(mph) {
     return "windsock";
 }
 
+function shortTermRainRisk(hourly, now = new Date()) {
+    if (!hourly || !Array.isArray(hourly.time) || !Array.isArray(hourly.precipitation_probability)) {
+        return null;
+    }
+
+    const nextHourIndexes = hourly.time
+        .map((timeText, index) => ({
+            hourDate: new Date(timeText),
+            index
+        }))
+        .filter(({ hourDate }) => !Number.isNaN(hourDate.getTime()) && hourDate > now)
+        .slice(0, RAIN_RISK_HOURS)
+        .map(({ index }) => index);
+
+    if (nextHourIndexes.length < RAIN_RISK_HOURS) {
+        return null;
+    }
+
+    const probabilities = nextHourIndexes.map(index => Number(hourly.precipitation_probability[index]));
+
+    if (probabilities.some(probability => !Number.isFinite(probability))) {
+        throw new Error("Hourly precipitation probability unavailable for next 3 hours");
+    }
+
+    return Math.round(Math.max(...probabilities));
+}
+
 function temperatureIconName(celsius) {
     if (celsius < 16) {
         return "thermometer-colder";
@@ -196,7 +224,7 @@ function renderHourlyWind(hours, data) {
         card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
             <div class="weather-hour-top">${isNow ? "Now" : label} - ${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</div>
-            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust ${gustMph}</span></div>
+            <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gust max ${gustMph}</span></div>
         `;
 
         hours.appendChild(card);
@@ -272,13 +300,13 @@ function renderForecastDays(days, daily) {
 
 function renderCurrentWeather(elements, data) {
     const current = data.current;
-    const daily = data.daily;
+    const hourly = data.hourly;
     const temp = Math.round(current.temperature_2m);
     const feels = Math.round(current.apparent_temperature);
     const windMph = Math.round(current.wind_speed_10m);
     const gustMph = Math.round(current.wind_gusts_10m);
     const windDir = compassDirection(current.wind_direction_10m);
-    const rainToday = daily.precipitation_probability_max[0];
+    const rainRisk = shortTermRainRisk(hourly);
     const currentWeatherDescription = weatherDescription(current.weather_code);
     const currentIsDay = current.is_day === undefined ? true : isDaytime(current.is_day);
     const beaufortForce = beaufortScaleFromMph(windMph);
@@ -287,9 +315,9 @@ function renderCurrentWeather(elements, data) {
     elements.now.innerHTML =
         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusts ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gust max ${gustMph} mph</span>`;
     elements.rain.innerHTML =
-        `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainToday}%</span><span class="current-detail">Max chance today</span>`;
+        `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }
 
 async function refreshWeather(elements) {
