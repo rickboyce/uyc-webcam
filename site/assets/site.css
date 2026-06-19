@@ -535,7 +535,7 @@ header::before {
 .weather-hour-bottom {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 0.35rem;
     color: var(--uyc-blue-dark);
     font-size: 0.95rem;
