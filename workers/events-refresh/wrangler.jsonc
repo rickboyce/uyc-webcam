@@ -7,7 +7,7 @@
 
   "triggers": {
     "crons": [
-      "13 * * * *"
+      "6 */6 * * *"
     ]
   },
 
@@ -20,7 +20,8 @@
 
   "vars": {
     "ENVIRONMENT": "prod",
-    "EVENTS_OBJECT_KEY": "var/events7day.json"
+    "EVENTS_OBJECT_KEY": "var/events7day.json",
+    "CACHE_PURGE_URL": "https://uyc.boats/var/events7day.json"
   },
 
   "env": {
@@ -41,7 +42,8 @@
 
       "vars": {
         "ENVIRONMENT": "test",
-        "EVENTS_OBJECT_KEY": "var/events7day.json"
+        "EVENTS_OBJECT_KEY": "var/events7day.json",
+        "CACHE_PURGE_URL": "https://test.uyc.boats/var/events7day.json"
       }
     }
   }

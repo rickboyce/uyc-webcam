@@ -20,7 +20,8 @@
   
     "vars": {
       "ENVIRONMENT": "prod",
-      "WEATHER_OBJECT_KEY": "var/weather.json"
+      "WEATHER_OBJECT_KEY": "var/weather.json",
+      "CACHE_PURGE_URL": "https://uyc.boats/var/weather.json"
     },
   
     "env": {
@@ -41,7 +42,8 @@
   
         "vars": {
           "ENVIRONMENT": "test",
-          "WEATHER_OBJECT_KEY": "var/weather.json"
+          "WEATHER_OBJECT_KEY": "var/weather.json",
+          "CACHE_PURGE_URL": "https://test.uyc.boats/var/weather.json"
         }
       }
     }

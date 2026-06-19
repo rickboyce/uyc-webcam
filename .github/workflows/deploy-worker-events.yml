@@ -40,13 +40,17 @@ jobs:
           with open("worker-secrets.json", "w", encoding="utf-8") as f:
               json.dump(
                   {
-                      "REFRESH_TOKEN": os.environ["EVENTS_REFRESH_TOKEN"]
+                      "REFRESH_TOKEN": os.environ["EVENTS_REFRESH_TOKEN"],
+                      "CLOUDFLARE_ZONE_ID": os.environ["CLOUDFLARE_ZONE_ID"],
+                      "CLOUDFLARE_API_TOKEN": os.environ["CLOUDFLARE_API_TOKEN"]
                   },
                   f
               )
           PY
         env:
           EVENTS_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
 
       - name: Set Worker deployment environment
         run: |
