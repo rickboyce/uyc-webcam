@@ -76,7 +76,23 @@ jobs:
 
           echo "WEATHER_REFRESH_URL=https://workers.uyc.boats/${WORKER_ENVIRONMENT}/weather-worker/refresh" >> "$GITHUB_ENV"
 
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/weather-refresh
+          wranglerVersion: "4"
+          command: ${{ env.WRANGLER_DEPLOY_COMMAND }}
 
+      - name: Deploy Worker triggers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/weather-refresh
+          wranglerVersion: "4"
+          command: ${{ env.WRANGLER_TRIGGERS_COMMAND }}
 
       - name: Trigger weather refresh
         run: |
