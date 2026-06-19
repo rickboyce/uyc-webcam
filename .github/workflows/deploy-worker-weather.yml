@@ -25,7 +25,7 @@ jobs:
         working-directory: workers/weather-refresh
         run: |
           : "${CLOUDFLARE_ZONE_ID:?Missing CLOUDFLARE_ZONE_ID secret}"
-          : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_CACHE_PURGE_API_TOKEN secret}"
+          : "${CLOUDFLARE_API_TOKEN:?Missing CLOUDFLARE_WORKER_API_TOKEN secret}"
 
           python3 - <<'PY'
           import json
@@ -44,7 +44,7 @@ jobs:
         env:
           WEATHER_REFRESH_TOKEN: ${{ secrets.WORKER_REFRESH_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKER_API_TOKEN }}
 
       - name: Set Worker deployment environment
         run: |
