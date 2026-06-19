@@ -34,15 +34,9 @@ A few small background jobs keep things fresh:
 4. 🪣 generated files are written to Cloudflare R2
 5. 🚀 Cloudflare serves the public site
 
+The webcam/NVR should not be exposed directly to the public internet. Instead, the image is fetched privately, cached, and published to Cloudflare R2 for the website to display.
+
 This keeps the site cheap, fast, and kind to the camera/NVR.
-
----
-
-## Why this design?
-
-The webcam/NVR should not be exposed directly to the public internet.
-
-Instead, the image is fetched privately, cached, and published to Cloudflare R2 for the website to display.
 
 ---
 
@@ -94,23 +88,6 @@ Example RouterOS configuration for deploying the capture tool using RouterOS Con
 
 ---
 
-## Deployment
-
-GitHub Actions handles build and deployment.
-
-It can:
-
-* build and publish the capture container
-* deploy the static site to Cloudflare R2
-* deploy the Cloudflare Workers
-* deploy separately to test and production
-
-`main` is the production branch, so changes to production should go through a pull request.
-
----
-
 ## Additional data sources and credits
 
 Weather data comes from Open-Meteo.
-
-Event data comes from the public Ullswater Yacht Club calendar feed.
