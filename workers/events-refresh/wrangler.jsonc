@@ -3,7 +3,13 @@
   "name": "uyc-webcam-events-refresh",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-17",
-  "workers_dev": true,
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "workers.uyc.boats/prod/events-worker/*",
+      "zone_name": "uyc.boats"
+    }
+  ],
 
   "triggers": {
     "crons": [
@@ -27,7 +33,13 @@
   "env": {
     "test": {
       "name": "uyc-webcam-events-refresh-test",
-      "workers_dev": true,
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "workers.uyc.boats/test/events-worker/*",
+          "zone_name": "uyc.boats"
+        }
+      ],
 
       "triggers": {
         "crons": []

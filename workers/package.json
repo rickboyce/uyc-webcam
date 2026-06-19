@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:shared": "node --test shared/test/*.test.mjs"
+  },
+  "dependencies": {
+    "jose": "^6.1.3"
+  }
+}
