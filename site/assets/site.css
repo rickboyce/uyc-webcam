@@ -141,7 +141,8 @@ header::before {
 }
 
 .note {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
+    line-height: 1.42;
     color: var(--muted);
     padding: 0.65rem 0.5rem 1rem 0.5rem;
 }
