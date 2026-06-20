@@ -2,6 +2,7 @@ const WEATHER_STATION_URL = "https://www.glenriddingcybercafe.co.uk/weather-pbpi
 const WEATHER_STATION_FRESH_MINUTES = 30;
 const WEATHER_STATION_FUTURE_TOLERANCE_MINUTES = 5;
 const WEATHER_STATION_TIMEOUT_MS = 10_000;
+const WEATHER_STATION_TIMEZONE = "Europe/London";
 const MONTH_BY_NAME: Record<string, number> = {
   january: 1,
   february: 2,
@@ -88,9 +89,9 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
     minute: Number(minuteText),
     second: 0
   };
-  const observedAt = formatStationTimestamp(stationLocal);
-  // The station labels this "local time", but appears to keep GMT rather than applying BST.
-  const ageMinutes = Math.round((now.getTime() - timestampAsUtcMs(stationLocal)) / 60_000);
+  const observedAtDate = zonedDateTimeToUtc(stationLocal, WEATHER_STATION_TIMEZONE);
+  const observedAt = observedAtDate.toISOString();
+  const ageMinutes = Math.round((now.getTime() - observedAtDate.getTime()) / 60_000);
   const futureToleranceMinutes = -WEATHER_STATION_FUTURE_TOLERANCE_MINUTES;
   const isFresh = ageMinutes >= futureToleranceMinutes && ageMinutes <= WEATHER_STATION_FRESH_MINUTES;
 
@@ -118,6 +119,38 @@ function htmlToPlainText(html: string): string {
     .trim();
 }
 
+function zonedDateTimeToUtc(timestamp: LocalTimestamp, timeZone: string): Date {
+  const desiredWallClockMs = timestampAsUtcMs(timestamp);
+  const utcGuessMs = desiredWallClockMs;
+  const guessWallClockMs = timestampAsUtcMs(getDatePartsInTimeZone(new Date(utcGuessMs), timeZone));
+
+  return new Date(utcGuessMs + desiredWallClockMs - guessWallClockMs);
+}
+
+function getDatePartsInTimeZone(date: Date, timeZone: string): LocalTimestamp {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour12: false,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  }).formatToParts(date);
+  const valueByType = Object.fromEntries(parts.map(part => [part.type, part.value]));
+
+  return {
+    year: Number(valueByType.year),
+    month: Number(valueByType.month),
+    day: Number(valueByType.day),
+    hour: Number(valueByType.hour),
+    minute: Number(valueByType.minute),
+    second: Number(valueByType.second)
+  };
+}
+
 function timestampAsUtcMs(timestamp: LocalTimestamp): number {
   return Date.UTC(
     timestamp.year,
@@ -127,12 +160,4 @@ function timestampAsUtcMs(timestamp: LocalTimestamp): number {
     timestamp.minute,
     timestamp.second
   );
-}
-
-function formatStationTimestamp(timestamp: LocalTimestamp): string {
-  return `${timestamp.year}-${padDatePart(timestamp.month)}-${padDatePart(timestamp.day)}T${padDatePart(timestamp.hour)}:${padDatePart(timestamp.minute)}:${padDatePart(timestamp.second)}Z`;
-}
-
-function padDatePart(value: number): string {
-  return String(value).padStart(2, "0");
 }

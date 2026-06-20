@@ -1,9 +1,29 @@
 import { isAccessRequestAuthorized } from "../../shared/access-auth.ts";
-import { fetchOpenMeteoWeather, type OpenMeteoWeather } from "./openMeteo";
+import { fetchOpenMeteoWeather } from "./openMeteo";
 import { fetchWeatherStationWindReading, type WeatherStationWindReading } from "./weatherStation";
 
 const WEATHER_OBJECT_KEY_DEFAULT = "var/weather.json";
 const WEATHER_WORKER_PATH = "weather-worker";
+const OPEN_METEO_SOURCE_ID = "open_meteo";
+const POOLEY_BRIDGE_STATION_ID = "pooley_bridge_weather_station";
+
+type WeatherStationSource = {
+  id: string;
+  label: string;
+  type: "weather_station";
+  source_url: string;
+  observed_at: string;
+  age_minutes: number;
+  is_fresh: boolean;
+  current: {
+    wind_speed_10m: number;
+    wind_gusts_10m: number;
+    wind_direction_10m: number;
+  };
+  metadata: {
+    wind_direction_compass: string;
+  };
+};
 
 type Env = {
   UYC_BUCKET: R2Bucket;
@@ -127,16 +147,20 @@ async function buildWeatherOutput(env: Env): Promise<Record<string, unknown>> {
   const stationReadingPromise = fetchWeatherStationWindReading();
   const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
   const stationReading = await stationReadingPromise;
-  const currentWeather = applyWeatherStationWind(sourceWeather.current, stationReading);
+  const weatherStations = buildWeatherStationSources(stationReading);
 
   const output = {
-    schema_version: 1,
+    schema_version: 2,
     environment: env.ENVIRONMENT,
     updated_at: new Date().toISOString(),
-    source_url: sourceUrl,
-    weather_station: stationReading,
-    ...sourceWeather,
-    current: currentWeather
+    forecast: {
+      id: OPEN_METEO_SOURCE_ID,
+      label: "Open-Meteo",
+      type: "forecast",
+      source_url: sourceUrl,
+      ...sourceWeather
+    },
+    weather_stations: weatherStations
   };
 
   return output;
@@ -150,22 +174,32 @@ function jsonResponse(output: unknown): Response {
   });
 }
 
-function applyWeatherStationWind(
-  currentWeather: OpenMeteoWeather["current"],
+function buildWeatherStationSources(
   stationReading: WeatherStationWindReading | null
-): OpenMeteoWeather["current"] {
-  if (!currentWeather || !stationReading?.is_fresh) {
-    return currentWeather;
+): WeatherStationSource[] {
+  if (!stationReading) {
+    return [];
   }
 
-  return {
-    ...currentWeather,
-    wind_speed_10m: stationReading.wind_speed_10m,
-    wind_gusts_10m: stationReading.wind_gusts_10m,
-    wind_direction_10m: stationReading.wind_direction_10m,
-    wind_source: "pooley_bridge_weather_station",
-    wind_observed_at: stationReading.observed_at
-  };
+  return [
+    {
+      id: POOLEY_BRIDGE_STATION_ID,
+      label: "Pooley Bridge weather station",
+      type: "weather_station",
+      source_url: stationReading.source_url,
+      observed_at: stationReading.observed_at,
+      age_minutes: stationReading.age_minutes,
+      is_fresh: stationReading.is_fresh,
+      current: {
+        wind_speed_10m: stationReading.wind_speed_10m,
+        wind_gusts_10m: stationReading.wind_gusts_10m,
+        wind_direction_10m: stationReading.wind_direction_10m
+      },
+      metadata: {
+        wind_direction_compass: stationReading.wind_direction_compass
+      }
+    }
+  ];
 }
 
 async function purgeCloudflareCache(env: Env): Promise<void> {

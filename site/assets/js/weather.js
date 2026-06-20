@@ -312,6 +312,24 @@ function renderForecastDays(days, daily) {
     }
 }
 
+function effectiveWeatherData(data) {
+    if (data.schema_version !== 2 || !data.forecast) {
+        return data;
+    }
+
+    const station = Array.isArray(data.weather_stations)
+        ? data.weather_stations.find(source => source.is_fresh && source.current)
+        : null;
+
+    return {
+        ...data.forecast,
+        current: {
+            ...data.forecast.current,
+            ...(station ? station.current : {})
+        }
+    };
+}
+
 function renderCurrentWeather(elements, data) {
     const current = data.current;
     const hourly = data.hourly;
@@ -336,7 +354,7 @@ function renderCurrentWeather(elements, data) {
 
 async function refreshWeather(elements) {
     try {
-        const data = await fetchJson(WEATHER_PATH);
+        const data = effectiveWeatherData(await fetchJson(WEATHER_PATH));
         renderCurrentWeather(elements, data);
         renderHourlyWind(elements.hours, data);
         renderForecastDays(elements.days, data.daily);
