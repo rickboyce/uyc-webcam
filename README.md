@@ -88,6 +88,35 @@ Example RouterOS configuration for deploying the capture tool using RouterOS Con
 
 ---
 
+## Local development
+
+Run the local site from the project root:
+
+```sh
+python3 dev/dev.py
+```
+
+By default the site serves files from `site/` at `http://127.0.0.1:8080/` and proxies `/var/*` JSON to `https://test.uyc.boats`.
+
+To run the site with local worker data, start one or both workers:
+
+```sh
+python3 dev/dev.py --weather-worker
+python3 dev/dev.py --events-worker
+python3 dev/dev.py --workers
+```
+
+When a local worker is enabled, the dev server tries its local JSON endpoint first and falls back to the test website if the worker is not running or has no data. The launcher also calls each local worker's `/refresh` endpoint once at startup to warm the local R2 data.
+
+Individual worker dev commands are also available:
+
+```sh
+cd workers/weather-refresh && npm run dev
+cd workers/events-refresh && npm run dev
+```
+
+---
+
 ## Additional data sources and credits
 
 Weather data comes from Open-Meteo.

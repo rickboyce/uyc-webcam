@@ -2,6 +2,9 @@
     "name": "uyc-webcam-weather-refresh",
     "private": true,
     "type": "module",
+    "scripts": {
+      "dev": "wrangler dev --local --port 8787 --persist-to ../../.wrangler-local/weather --var ENVIRONMENT:local --var WEATHER_OBJECT_KEY:var/weather.json"
+    },
     "devDependencies": {
       "typescript": "^5.5.0",
       "wrangler": "^4.0.0"

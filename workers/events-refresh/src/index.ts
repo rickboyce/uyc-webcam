@@ -20,7 +20,7 @@ const TZID_ALIASES: Record<string, string> = {
 
 type Env = {
   UYC_BUCKET: R2Bucket;
-  ENVIRONMENT: "prod" | "test";
+  ENVIRONMENT: "prod" | "test" | "local";
   EVENTS_OBJECT_KEY?: string;
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
@@ -60,6 +60,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (isEventsObjectPath(url.pathname, env)) {
+      return handleEventsObjectRead(env);
+    }
+
     if (isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
@@ -72,6 +76,16 @@ export default {
   }
 };
 
+function eventsObjectKey(env: Env): string {
+  return env.EVENTS_OBJECT_KEY || EVENTS_OBJECT_KEY_DEFAULT;
+}
+
+function isEventsObjectPath(pathname: string, env: Env): boolean {
+  const objectPath = `/${eventsObjectKey(env)}`;
+
+  return pathname === objectPath || pathname === `/${env.ENVIRONMENT}/${EVENTS_WORKER_PATH}${objectPath}`;
+}
+
 function isManualRefreshPath(pathname: string, env: Env): boolean {
   return (
     pathname === "/refresh" ||
@@ -80,7 +94,7 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  if (!(await isAccessRequestAuthorized(request, env))) {
+  if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }
@@ -93,6 +107,26 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
     ok: true,
     environment: env.ENVIRONMENT,
     refreshed_at: toIsoZ(new Date())
+  });
+}
+
+async function handleEventsObjectRead(env: Env): Promise<Response> {
+  const objectKey = eventsObjectKey(env);
+  const object = await env.UYC_BUCKET.get(objectKey);
+
+  if (!object) {
+    return Response.json(
+      { ok: false, error: `Events object not found: ${objectKey}` },
+      { status: 404 }
+    );
+  }
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("Cache-Control", "no-store");
+
+  return new Response(object.body, {
+    headers
   });
 }
 
@@ -111,7 +145,7 @@ async function updateEvents(env: Env): Promise<void> {
   const icsText = await response.text();
   const output = convertIcsTextToJson(icsText, CALENDAR_URL);
 
-  const objectKey = env.EVENTS_OBJECT_KEY || EVENTS_OBJECT_KEY_DEFAULT;
+  const objectKey = eventsObjectKey(env);
 
   await env.UYC_BUCKET.put(
     objectKey,
