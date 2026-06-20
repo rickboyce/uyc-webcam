@@ -41,13 +41,27 @@ export type WeatherStationWindReading = {
 export async function fetchWeatherStationWindReading(): Promise<WeatherStationWindReading | null> {
   try {
     const response = await fetch(WEATHER_STATION_URL, {
+      cache: "no-store",
       headers: {
         "accept": "text/html",
+        "cache-control": "no-store",
+        "pragma": "no-cache"
       },
       signal: AbortSignal.timeout(WEATHER_STATION_TIMEOUT_MS)
     });
 
-    console.log(response);
+    console.log("Weather station response", {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      url: response.url,
+      contentType: response.headers.get("content-type"),
+      cacheControl: response.headers.get("cache-control"),
+      date: response.headers.get("date"),
+      lastModified: response.headers.get("last-modified"),
+      age: response.headers.get("age"),
+      cfCacheStatus: response.headers.get("cf-cache-status")
+    });
     
     if (!response.ok) {
       throw new Error(`Weather station failed: ${response.status} ${response.statusText}`);
@@ -71,6 +85,13 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
   const windBearingMatch = text.match(
     /Wind Bearing\s+([0-9]+(?:\.[0-9]+)?)\s+(?:degrees|\u00b0)\s+([A-Z]{1,3})/
   );
+
+  console.log("Weather station parsed text excerpt", text.slice(0, 1_000));
+  console.log("Weather station regex matches", {
+    observed: observedMatch?.[0] ?? null,
+    windSpeed: windSpeedMatch?.[0] ?? null,
+    windBearing: windBearingMatch?.[0] ?? null
+  });
 
   if (!observedMatch || !windSpeedMatch || !windBearingMatch) {
     throw new Error("Weather station page did not contain expected wind fields");
