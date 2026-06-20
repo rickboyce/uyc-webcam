@@ -52,28 +52,8 @@ def wait_for_url(url, timeout_seconds=30):
     return False
 
 
-def refresh_worker(name, port):
-    url = worker_url(port) + "/refresh"
-    request = Request(
-        url,
-        method="POST",
-        headers={"User-Agent": "uyc-dev"},
-    )
-
-    try:
-        with urlopen(request, timeout=45) as response:
-            if 200 <= response.status < 300:
-                print(f"Refreshed local {name} data: {url}")
-                return
-
-            print(f"Local {name} refresh returned HTTP {response.status}: {url}")
-    except (HTTPError, URLError, TimeoutError, OSError) as exc:
-        print(f"Could not pre-refresh local {name} data ({exc}). The dev server will retry on first request.")
-
-
-def start_worker(name, config, persist_root):
+def start_worker(name, config):
     port = config["port"]
-    persist_path = persist_root / name
     command = [
         "npx",
         "wrangler",
@@ -81,8 +61,6 @@ def start_worker(name, config, persist_root):
         "--local",
         "--port",
         str(port),
-        "--persist-to",
-        str(persist_path),
         "--show-interactive-dev-session=false",
     ]
 
@@ -91,13 +69,11 @@ def start_worker(name, config, persist_root):
 
     print(f"Starting {config['label']} on {worker_url(port)}")
     print(f"  Local JSON: {worker_url(port)}{config['object_path']}")
-    print(f"  Refresh:    {worker_url(port)}/refresh")
+    print("  Requests generate JSON directly without writing R2 or purging caches")
 
     process = subprocess.Popen(command, cwd=config["cwd"])
 
-    if wait_for_url(worker_url(port)):
-        refresh_worker(name, port)
-    else:
+    if not wait_for_url(worker_url(port)):
         print(f"{config['label']} did not become ready within 30s; continuing anyway.")
 
     return process
@@ -136,7 +112,7 @@ def print_intro(args, selected_workers):
         for name in selected_workers:
             config = WORKERS[name]
             print(f"  {name}: {worker_url(config['port'])}{config['object_path']}")
-        print("The site server will use local worker JSON when available, then fall back to https://test.uyc.boats.")
+        print("The site server will proxy JSON requests to local workers and fall back to https://test.uyc.boats.")
     else:
         print("No local workers enabled; /var/* will proxy to https://test.uyc.boats.")
 
@@ -151,11 +127,6 @@ def parse_args():
     parser.add_argument("--events-worker", action="store_true", help="Start the local events worker")
     parser.add_argument("--workers", action="store_true", help="Start both local workers")
     parser.add_argument("--no-open", action="store_true", help="Do not open a browser")
-    parser.add_argument(
-        "--persist-to",
-        default=str(ROOT / ".wrangler-local"),
-        help="Directory for Wrangler local worker state",
-    )
     return parser.parse_args()
 
 
@@ -174,10 +145,8 @@ def main():
     processes = []
 
     try:
-        persist_root = Path(args.persist_to).resolve()
-
         for name in selected_workers:
-            processes.append(start_worker(name, WORKERS[name], persist_root))
+            processes.append(start_worker(name, WORKERS[name]))
 
         site_process = start_site(args, selected_workers)
         processes.append(site_process)

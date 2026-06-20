@@ -106,7 +106,7 @@ python3 dev/dev.py --events-worker
 python3 dev/dev.py --workers
 ```
 
-When a local worker is enabled, the dev server tries its local JSON endpoint first and falls back to the test website if the worker is not running or has no data. The launcher also calls each local worker's `/refresh` endpoint once at startup to warm the local R2 data.
+When a local worker is enabled, the dev server proxies matching `/var/*.json` requests to the local worker and uses its JSON response directly. If the worker is not running or cannot serve the request, the dev server falls back to the test website. Local worker JSON requests do not write to R2 or purge caches.
 
 Individual worker dev commands are also available:
 

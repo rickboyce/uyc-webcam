@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --local --port 8788 --persist-to ../../.wrangler-local/events --var ENVIRONMENT:local --var EVENTS_OBJECT_KEY:var/events7day.json",
+    "dev": "wrangler dev --local --port 8788 --var ENVIRONMENT:local --var EVENTS_OBJECT_KEY:var/events7day.json",
     "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {

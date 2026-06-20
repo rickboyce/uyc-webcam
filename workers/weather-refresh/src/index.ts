@@ -59,6 +59,10 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildWeatherOutput(env));
+  }
+
   if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
@@ -76,6 +80,10 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
 }
 
 async function handleWeatherObjectRead(env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildWeatherOutput(env));
+  }
+
   const objectKey = weatherObjectKey(env);
   const object = await env.UYC_BUCKET.get(objectKey);
 
@@ -96,21 +104,7 @@ async function handleWeatherObjectRead(env: Env): Promise<Response> {
 }
 
 async function updateWeather(env: Env): Promise<void> {
-  const stationReadingPromise = fetchWeatherStationWindReading();
-  const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
-  const stationReading = await stationReadingPromise;
-  const currentWeather = applyWeatherStationWind(sourceWeather.current, stationReading);
-
-  const output = {
-    schema_version: 1,
-    environment: env.ENVIRONMENT,
-    updated_at: new Date().toISOString(),
-    source_url: sourceUrl,
-    weather_station: stationReading,
-    ...sourceWeather,
-    current: currentWeather
-  };
-
+  const output = await buildWeatherOutput(env);
   const objectKey = weatherObjectKey(env);
 
   await env.UYC_BUCKET.put(
@@ -127,6 +121,33 @@ async function updateWeather(env: Env): Promise<void> {
   await purgeCloudflareCache(env);
 
   console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
+}
+
+async function buildWeatherOutput(env: Env): Promise<Record<string, unknown>> {
+  const stationReadingPromise = fetchWeatherStationWindReading();
+  const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
+  const stationReading = await stationReadingPromise;
+  const currentWeather = applyWeatherStationWind(sourceWeather.current, stationReading);
+
+  const output = {
+    schema_version: 1,
+    environment: env.ENVIRONMENT,
+    updated_at: new Date().toISOString(),
+    source_url: sourceUrl,
+    weather_station: stationReading,
+    ...sourceWeather,
+    current: currentWeather
+  };
+
+  return output;
+}
+
+function jsonResponse(output: unknown): Response {
+  return Response.json(output, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
+  });
 }
 
 function applyWeatherStationWind(
