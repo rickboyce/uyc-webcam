@@ -1,13 +1,63 @@
 import { isAccessRequestAuthorized } from "../../shared/access-auth.ts";
+import { fetchOpenMeteoWeather } from "./openMeteo";
+import { fetchWeatherStationWindReading, type WeatherStationWindReading } from "./weatherStation";
 
-const LATITUDE = "54.5950";
-const LONGITUDE = "-2.8412";
 const WEATHER_OBJECT_KEY_DEFAULT = "var/weather.json";
 const WEATHER_WORKER_PATH = "weather-worker";
+const OPEN_METEO_SOURCE_ID = "open_meteo";
+const POOLEY_BRIDGE_STATION_ID = "pooley_bridge_weather_station";
+
+type WeatherStationSource = {
+  id: string;
+  label: string;
+  type: "weather_station";
+  source_url: string;
+  observed_at: string;
+  age_minutes: number;
+  is_fresh: boolean;
+  current: {
+    wind_speed_10m: number;
+    wind_gusts_10m: number;
+    wind_direction_10m: number;
+  };
+  metadata: {
+    wind_direction_compass: string;
+  };
+};
+
+type WeatherOutput = {
+  schema_version: number;
+  environment: Env["ENVIRONMENT"];
+  updated_at: string;
+  forecast: {
+    id: string;
+    label: string;
+    type: "forecast";
+    source_url: string;
+    current?: {
+      time?: unknown;
+    };
+    timezone?: unknown;
+  } & Record<string, unknown>;
+  weather_stations: WeatherStationSource[];
+};
+
+type RefreshSourceSummary = {
+  forecast: {
+    id: string;
+    time: string | null;
+  };
+  weather_stations: Array<{
+    id: string;
+    time: string;
+    age_minutes: number;
+    is_fresh: boolean;
+  }>;
+};
 
 type Env = {
   UYC_BUCKET: R2Bucket;
-  ENVIRONMENT: "prod" | "test";
+  ENVIRONMENT: "prod" | "test" | "local";
   WEATHER_OBJECT_KEY?: string;
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
@@ -25,6 +75,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (isWeatherObjectPath(url.pathname, env)) {
+      return handleWeatherObjectRequest(env);
+    }
+
     if (isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
@@ -37,6 +91,16 @@ export default {
   }
 };
 
+function weatherObjectKey(env: Env): string {
+  return env.WEATHER_OBJECT_KEY || WEATHER_OBJECT_KEY_DEFAULT;
+}
+
+function isWeatherObjectPath(pathname: string, env: Env): boolean {
+  const objectPath = `/${weatherObjectKey(env)}`;
+
+  return pathname === objectPath || pathname === `/${env.ENVIRONMENT}/${WEATHER_WORKER_PATH}${objectPath}`;
+}
+
 function isManualRefreshPath(pathname: string, env: Env): boolean {
   return (
     pathname === "/refresh" ||
@@ -45,46 +109,42 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  if (!(await isAccessRequestAuthorized(request, env))) {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildWeatherOutput(env));
+  }
+
+  if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }
     );
   }
 
-  await updateWeather(env);
+  const output = await updateWeather(env);
 
   return Response.json({
     ok: true,
-    environment: env.ENVIRONMENT,
-    refreshed_at: new Date().toISOString()
+    env: env.ENVIRONMENT,
+    refreshed_at: output.updated_at,
+    object: weatherObjectKey(env),
+    sources: buildRefreshSourceSummary(output)
   });
 }
 
-async function updateWeather(env: Env): Promise<void> {
-  const weatherApiUrl = buildWeatherApiUrl();
-
-  const response = await fetch(weatherApiUrl, {
-    headers: {
-      "accept": "application/json"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Weather API failed: ${response.status} ${response.statusText}`);
+async function handleWeatherObjectRequest(env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildWeatherOutput(env));
   }
 
-  const sourceWeather = await response.json();
+  return Response.json(
+    { ok: false, error: "Weather JSON is only served directly by the local worker" },
+    { status: 404 }
+  );
+}
 
-  const output = {
-    schema_version: 1,
-    environment: env.ENVIRONMENT,
-    updated_at: new Date().toISOString(),
-    source_url: weatherApiUrl,
-    ...sourceWeather
-  };
-
-  const objectKey = env.WEATHER_OBJECT_KEY || WEATHER_OBJECT_KEY_DEFAULT;
+async function updateWeather(env: Env): Promise<WeatherOutput> {
+  const output = await buildWeatherOutput(env);
+  const objectKey = weatherObjectKey(env);
 
   await env.UYC_BUCKET.put(
     objectKey,
@@ -97,9 +157,87 @@ async function updateWeather(env: Env): Promise<void> {
     }
   );
 
+  console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
+
   await purgeCloudflareCache(env);
 
-  console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
+  return output;
+}
+
+async function buildWeatherOutput(env: Env): Promise<WeatherOutput> {
+  const stationReadingPromise = fetchWeatherStationWindReading();
+  const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
+  const stationReading = await stationReadingPromise;
+  const weatherStations = buildWeatherStationSources(stationReading);
+
+  const output = {
+    schema_version: 2,
+    environment: env.ENVIRONMENT,
+    updated_at: new Date().toISOString(),
+    forecast: {
+      id: OPEN_METEO_SOURCE_ID,
+      label: "Open-Meteo",
+      type: "forecast",
+      source_url: sourceUrl,
+      ...sourceWeather
+    },
+    weather_stations: weatherStations
+  };
+
+  return output;
+}
+
+function buildRefreshSourceSummary(output: WeatherOutput): RefreshSourceSummary {
+  return {
+    forecast: {
+      id: output.forecast.id,
+      time: typeof output.forecast.current?.time === "string"
+        ? output.forecast.current.time
+        : null
+    },
+    weather_stations: output.weather_stations.map((station) => ({
+      id: station.id,
+      time: station.observed_at,
+      age_minutes: station.age_minutes,
+      is_fresh: station.is_fresh
+    }))
+  };
+}
+
+function jsonResponse(output: unknown): Response {
+  return Response.json(output, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
+  });
+}
+
+function buildWeatherStationSources(
+  stationReading: WeatherStationWindReading | null
+): WeatherStationSource[] {
+  if (!stationReading) {
+    return [];
+  }
+
+  return [
+    {
+      id: POOLEY_BRIDGE_STATION_ID,
+      label: "Pooley Bridge weather station",
+      type: "weather_station",
+      source_url: stationReading.source_url,
+      observed_at: stationReading.observed_at,
+      age_minutes: stationReading.age_minutes,
+      is_fresh: stationReading.is_fresh,
+      current: {
+        wind_speed_10m: stationReading.wind_speed_10m,
+        wind_gusts_10m: stationReading.wind_gusts_10m,
+        wind_direction_10m: stationReading.wind_direction_10m
+      },
+      metadata: {
+        wind_direction_compass: stationReading.wind_direction_compass
+      }
+    }
+  ];
 }
 
 async function purgeCloudflareCache(env: Env): Promise<void> {
@@ -127,57 +265,4 @@ async function purgeCloudflareCache(env: Env): Promise<void> {
   }
 
   console.log(`[${env.ENVIRONMENT}] Purged Cloudflare cache for ${env.CACHE_PURGE_URL}`);
-}
-
-function buildWeatherApiUrl(): string {
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-
-  url.searchParams.set("latitude", LATITUDE);
-  url.searchParams.set("longitude", LONGITUDE);
-
-  url.searchParams.set(
-    "current",
-    [
-      "temperature_2m",
-      "apparent_temperature",
-      "precipitation",
-      "weather_code",
-      "wind_speed_10m",
-      "wind_gusts_10m",
-      "wind_direction_10m",
-      "is_day"
-    ].join(",")
-  );
-
-  url.searchParams.set(
-    "hourly",
-    [
-      "temperature_2m",
-      "precipitation_probability",
-      "weather_code",
-      "wind_speed_10m",
-      "wind_gusts_10m",
-      "wind_direction_10m",
-      "is_day"
-    ].join(",")
-  );
-
-  url.searchParams.set(
-    "daily",
-    [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "precipitation_probability_max",
-      "wind_speed_10m_max",
-      "wind_gusts_10m_max",
-      "wind_direction_10m_dominant"
-    ].join(",")
-  );
-
-  url.searchParams.set("timezone", "Europe/London");
-  url.searchParams.set("forecast_days", "4");
-  url.searchParams.set("wind_speed_unit", "mph");
-
-  return url.toString();
 }

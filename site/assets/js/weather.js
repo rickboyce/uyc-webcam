@@ -1,4 +1,4 @@
-import { USER_LOCALE, fetchJson, nearestHour, setTimestamp } from "./shared.js";
+import { USER_LOCALE, fetchJson, setTimestamp } from "./shared.js";
 
 const WEATHER_PATH = "/var/weather.json";
 const REFRESH_MS = 300_000;
@@ -189,10 +189,18 @@ function compassDirection(degrees) {
     return directions[index];
 }
 
-function windDirectionMarkup(direction, degrees) {
+function windDirectionMarkup(direction, degrees, options = {}) {
     const rotation = (degrees + 90) % 360;
+    const sourceClass = options.isStationObservation ? " is-station-observation" : "";
 
-    return `<span class="wind-direction"><span>${direction}</span><svg class="wind-arrow" style="--wind-rotation: ${rotation}deg" viewBox="0 0 24 24" role="img" aria-label="Wind from ${direction}"><circle cx="12" cy="12" r="11"></circle><path d="M6 12h10M12 7l5 5-5 5"></path></svg></span>`;
+    return `<span class="wind-direction${sourceClass}"><span>${direction}</span><svg class="wind-arrow" style="--wind-rotation: ${rotation}deg" viewBox="0 0 24 24" role="img" aria-label="Wind from ${direction}"><circle cx="12" cy="12" r="11"></circle><path d="M6 12h10M12 7l5 5-5 5"></path></svg></span>`;
+}
+
+function nextWholeHour(date) {
+    const hour = new Date(date);
+    hour.setMinutes(0, 0, 0);
+    hour.setHours(hour.getHours() + 1);
+    return hour;
 }
 
 function renderHourlyWind(hours, data) {
@@ -206,12 +214,10 @@ function renderHourlyWind(hours, data) {
         return;
     }
 
-    const nowHour = nearestHour(new Date());
-    const startHour = new Date(nowHour);
-    startHour.setHours(startHour.getHours() - 1);
+    const startHour = nextWholeHour(new Date());
 
-    const endHour = new Date(nowHour);
-    endHour.setHours(endHour.getHours() + 6);
+    const endHour = new Date(startHour);
+    endHour.setHours(endHour.getHours() + 11);
 
     hourly.time.forEach((timeText, index) => {
         const hourDate = new Date(timeText);
@@ -225,17 +231,17 @@ function renderHourlyWind(hours, data) {
         const direction = compassDirection(hourly.wind_direction_10m[index]);
         const description = weatherDescription(hourly.weather_code[index]);
         const isDay = isDaytime(hourly.is_day[index]);
-        const isNow = hourDate.getTime() === nowHour.getTime();
+        const isNextHour = hourDate.getTime() === startHour.getTime();
         const label = hourDate.toLocaleTimeString(USER_LOCALE, {
             hour: "2-digit",
             minute: "2-digit"
         });
 
         const card = document.createElement("div");
-        card.className = isNow ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
+        card.className = isNextHour ? `${WEATHER_HOUR_CLASS} is-now` : WEATHER_HOUR_CLASS;
         card.innerHTML = `
             <div class="weather-hour-top">
-                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description, isDay)}<span class="weather-hour-time">${isNow ? "Now" : label}</span></span>
+                <span class="weather-hour-condition">${hourlyWeatherIconMarkup(hourly.weather_code[index], description, isDay)}<span class="weather-hour-time">${isNextHour ? "Next hour" : label}</span></span>
                 <span class="weather-hour-wind">${windDirectionMarkup(direction, hourly.wind_direction_10m[index])}</span>
             </div>
             <div class="weather-hour-bottom"><span class="wind-speed">${speedMph}<span class="wind-unit"> mph</span></span><span class="wind-gust">gusts ${gustMph}</span></div>
@@ -312,14 +318,31 @@ function renderForecastDays(days, daily) {
     }
 }
 
+function effectiveWeatherData(data) {
+    if (data.schema_version !== 2 || !data.forecast) {
+        return data;
+    }
+
+    const station = Array.isArray(data.weather_stations)
+        ? data.weather_stations.find(source => source.is_fresh && source.current)
+        : null;
+
+    return {
+        ...data.forecast,
+        current_wind_source: station
+    };
+}
+
 function renderCurrentWeather(elements, data) {
     const current = data.current;
     const hourly = data.hourly;
+    const currentWind = data.current_wind_source ? data.current_wind_source.current : current;
+    const hasStationWind = Boolean(data.current_wind_source);
     const temp = Math.round(current.temperature_2m);
     const feels = Math.round(current.apparent_temperature);
-    const windMph = Math.round(current.wind_speed_10m);
-    const gustMph = Math.round(current.wind_gusts_10m);
-    const windDir = compassDirection(current.wind_direction_10m);
+    const windMph = Math.round(currentWind.wind_speed_10m);
+    const gustMph = Math.round(currentWind.wind_gusts_10m);
+    const windDir = compassDirection(currentWind.wind_direction_10m);
     const rainRisk = shortTermRainRisk(hourly);
     const currentWeatherDescription = weatherDescription(current.weather_code);
     const currentIsDay = current.is_day === undefined ? true : isDaytime(current.is_day);
@@ -329,14 +352,14 @@ function renderCurrentWeather(elements, data) {
     elements.now.innerHTML =
         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels like ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, current.wind_direction_10m)} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, currentWind.wind_direction_10m, { isStationObservation: hasStationWind })} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
         `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }
 
 async function refreshWeather(elements) {
     try {
-        const data = await fetchJson(WEATHER_PATH);
+        const data = effectiveWeatherData(await fetchJson(WEATHER_PATH));
         renderCurrentWeather(elements, data);
         renderHourlyWind(elements.hours, data);
         renderForecastDays(elements.days, data.daily);

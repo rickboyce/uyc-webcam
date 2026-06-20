@@ -20,7 +20,7 @@ const TZID_ALIASES: Record<string, string> = {
 
 type Env = {
   UYC_BUCKET: R2Bucket;
-  ENVIRONMENT: "prod" | "test";
+  ENVIRONMENT: "prod" | "test" | "local";
   EVENTS_OBJECT_KEY?: string;
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
@@ -60,6 +60,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (isEventsObjectPath(url.pathname, env)) {
+      return handleEventsObjectRequest(env);
+    }
+
     if (isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
@@ -72,6 +76,16 @@ export default {
   }
 };
 
+function eventsObjectKey(env: Env): string {
+  return env.EVENTS_OBJECT_KEY || EVENTS_OBJECT_KEY_DEFAULT;
+}
+
+function isEventsObjectPath(pathname: string, env: Env): boolean {
+  const objectPath = `/${eventsObjectKey(env)}`;
+
+  return pathname === objectPath || pathname === `/${env.ENVIRONMENT}/${EVENTS_WORKER_PATH}${objectPath}`;
+}
+
 function isManualRefreshPath(pathname: string, env: Env): boolean {
   return (
     pathname === "/refresh" ||
@@ -80,7 +94,11 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  if (!(await isAccessRequestAuthorized(request, env))) {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildEventsOutput());
+  }
+
+  if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }
@@ -96,22 +114,20 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
   });
 }
 
-async function updateEvents(env: Env): Promise<void> {
-  const response = await fetch(CALENDAR_URL, {
-    headers: {
-      "User-Agent": "uyc-webcam-events/1.0",
-      "Accept": "text/calendar,*/*"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Calendar fetch failed: ${response.status} ${response.statusText}`);
+async function handleEventsObjectRequest(env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildEventsOutput());
   }
 
-  const icsText = await response.text();
-  const output = convertIcsTextToJson(icsText, CALENDAR_URL);
+  return Response.json(
+    { ok: false, error: "Events JSON is only served directly by the local worker" },
+    { status: 404 }
+  );
+}
 
-  const objectKey = env.EVENTS_OBJECT_KEY || EVENTS_OBJECT_KEY_DEFAULT;
+async function updateEvents(env: Env): Promise<void> {
+  const output = await buildEventsOutput();
+  const objectKey = eventsObjectKey(env);
 
   await env.UYC_BUCKET.put(
     objectKey,
@@ -129,6 +145,30 @@ async function updateEvents(env: Env): Promise<void> {
   console.log(
     `[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`
   );
+}
+
+async function buildEventsOutput() {
+  const response = await fetch(CALENDAR_URL, {
+    headers: {
+      "User-Agent": "uyc-webcam-events/1.0",
+      "Accept": "text/calendar,*/*"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Calendar fetch failed: ${response.status} ${response.statusText}`);
+  }
+
+  const icsText = await response.text();
+  return convertIcsTextToJson(icsText, CALENDAR_URL);
+}
+
+function jsonResponse(output: unknown): Response {
+  return Response.json(output, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
+  });
 }
 
 async function purgeCloudflareCache(env: Env): Promise<void> {
