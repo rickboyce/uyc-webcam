@@ -25,6 +25,43 @@ type WeatherStationSource = {
   };
 };
 
+type WeatherOutput = {
+  schema_version: number;
+  environment: Env["ENVIRONMENT"];
+  updated_at: string;
+  forecast: {
+    id: string;
+    label: string;
+    type: "forecast";
+    source_url: string;
+    current?: {
+      time?: unknown;
+    };
+    timezone?: unknown;
+  } & Record<string, unknown>;
+  weather_stations: WeatherStationSource[];
+};
+
+type RefreshSourceSummary = {
+  forecast: {
+    id: string;
+    label: string;
+    type: "forecast";
+    source_url: string;
+    current_time: string | null;
+    timezone: string | null;
+  };
+  weather_stations: Array<{
+    id: string;
+    label: string;
+    type: "weather_station";
+    source_url: string;
+    observed_at: string;
+    age_minutes: number;
+    is_fresh: boolean;
+  }>;
+};
+
 type Env = {
   UYC_BUCKET: R2Bucket;
   ENVIRONMENT: "prod" | "test" | "local";
@@ -90,12 +127,14 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
     );
   }
 
-  await updateWeather(env);
+  const output = await updateWeather(env);
 
   return Response.json({
     ok: true,
     environment: env.ENVIRONMENT,
-    refreshed_at: new Date().toISOString()
+    refreshed_at: output.updated_at,
+    object_key: weatherObjectKey(env),
+    sources: buildRefreshSourceSummary(output)
   });
 }
 
@@ -110,7 +149,7 @@ async function handleWeatherObjectRequest(env: Env): Promise<Response> {
   );
 }
 
-async function updateWeather(env: Env): Promise<void> {
+async function updateWeather(env: Env): Promise<WeatherOutput> {
   const output = await buildWeatherOutput(env);
   const objectKey = weatherObjectKey(env);
 
@@ -128,9 +167,11 @@ async function updateWeather(env: Env): Promise<void> {
   console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
 
   await purgeCloudflareCache(env);
+
+  return output;
 }
 
-async function buildWeatherOutput(env: Env): Promise<Record<string, unknown>> {
+async function buildWeatherOutput(env: Env): Promise<WeatherOutput> {
   const stationReadingPromise = fetchWeatherStationWindReading();
   const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
   const stationReading = await stationReadingPromise;
@@ -151,6 +192,32 @@ async function buildWeatherOutput(env: Env): Promise<Record<string, unknown>> {
   };
 
   return output;
+}
+
+function buildRefreshSourceSummary(output: WeatherOutput): RefreshSourceSummary {
+  return {
+    forecast: {
+      id: output.forecast.id,
+      label: output.forecast.label,
+      type: output.forecast.type,
+      source_url: output.forecast.source_url,
+      current_time: typeof output.forecast.current?.time === "string"
+        ? output.forecast.current.time
+        : null,
+      timezone: typeof output.forecast.timezone === "string"
+        ? output.forecast.timezone
+        : null
+    },
+    weather_stations: output.weather_stations.map((station) => ({
+      id: station.id,
+      label: station.label,
+      type: station.type,
+      source_url: station.source_url,
+      observed_at: station.observed_at,
+      age_minutes: station.age_minutes,
+      is_fresh: station.is_fresh
+    }))
+  };
 }
 
 function jsonResponse(output: unknown): Response {
