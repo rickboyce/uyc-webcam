@@ -7,7 +7,7 @@ const WEATHER_WORKER_PATH = "weather-worker";
 
 type Env = {
   UYC_BUCKET: R2Bucket;
-  ENVIRONMENT: "prod" | "test";
+  ENVIRONMENT: "prod" | "test" | "local";
   WEATHER_OBJECT_KEY?: string;
   CACHE_PURGE_URL?: string;
   CLOUDFLARE_ZONE_ID?: string;
@@ -25,6 +25,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (isWeatherObjectPath(url.pathname, env)) {
+      return handleWeatherObjectRead(env);
+    }
+
     if (isManualRefreshPath(url.pathname, env)) {
       return handleManualRefresh(request, env);
     }
@@ -37,6 +41,16 @@ export default {
   }
 };
 
+function weatherObjectKey(env: Env): string {
+  return env.WEATHER_OBJECT_KEY || WEATHER_OBJECT_KEY_DEFAULT;
+}
+
+function isWeatherObjectPath(pathname: string, env: Env): boolean {
+  const objectPath = `/${weatherObjectKey(env)}`;
+
+  return pathname === objectPath || pathname === `/${env.ENVIRONMENT}/${WEATHER_WORKER_PATH}${objectPath}`;
+}
+
 function isManualRefreshPath(pathname: string, env: Env): boolean {
   return (
     pathname === "/refresh" ||
@@ -45,7 +59,7 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
-  if (!(await isAccessRequestAuthorized(request, env))) {
+  if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
       { status: 401 }
@@ -58,6 +72,26 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
     ok: true,
     environment: env.ENVIRONMENT,
     refreshed_at: new Date().toISOString()
+  });
+}
+
+async function handleWeatherObjectRead(env: Env): Promise<Response> {
+  const objectKey = weatherObjectKey(env);
+  const object = await env.UYC_BUCKET.get(objectKey);
+
+  if (!object) {
+    return Response.json(
+      { ok: false, error: `Weather object not found: ${objectKey}` },
+      { status: 404 }
+    );
+  }
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("Cache-Control", "no-store");
+
+  return new Response(object.body, {
+    headers
   });
 }
 
@@ -77,7 +111,7 @@ async function updateWeather(env: Env): Promise<void> {
     current: currentWeather
   };
 
-  const objectKey = env.WEATHER_OBJECT_KEY || WEATHER_OBJECT_KEY_DEFAULT;
+  const objectKey = weatherObjectKey(env);
 
   await env.UYC_BUCKET.put(
     objectKey,

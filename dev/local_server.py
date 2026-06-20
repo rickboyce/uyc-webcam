@@ -12,6 +12,7 @@ import sys
 import webbrowser
 
 REMOTE_BASE = "https://test.uyc.boats"
+LOCAL_WORKER_TARGETS = {}
 
 # Local paths that should be fetched from the test site instead of disk.
 # Adjust these if your frontend uses different paths.
@@ -149,6 +150,12 @@ class DevHandler(SimpleHTTPRequestHandler):
         return any(path.startswith(prefix) for prefix in PROXY_PREFIXES)
 
     def proxy_request(self, head_only=False):
+        path = self.path.split("?", 1)[0]
+        local_worker_url = LOCAL_WORKER_TARGETS.get(path)
+
+        if local_worker_url and self.try_local_worker_proxy(local_worker_url, head_only):
+            return
+
         remote_url = REMOTE_BASE + self.path
 
         try:
@@ -188,11 +195,72 @@ class DevHandler(SimpleHTTPRequestHandler):
         except TimeoutError:
             self.send_error(504, f"Proxy timeout fetching {remote_url}")
 
+    def try_local_worker_proxy(self, local_worker_url, head_only=False):
+        local_url = local_worker_url + self.path
+
+        try:
+            status, headers, body = self.fetch_proxy_response(local_url, head_only=head_only, timeout=3)
+
+            if status == 404 and not head_only:
+                refresh_url = local_worker_url + "/refresh"
+                print(f"Local worker object missing for {self.path}; refreshing {refresh_url}")
+                self.fetch_proxy_response(refresh_url, method="POST", timeout=30)
+                status, headers, body = self.fetch_proxy_response(local_url, head_only=False, timeout=3)
+
+            if 200 <= status < 300:
+                self.send_proxy_response(status, headers, body, head_only=head_only)
+                return True
+
+            print(f"Local worker returned {status} for {self.path}; falling back to {REMOTE_BASE}")
+            return False
+        except (HTTPError, URLError, TimeoutError, OSError) as exc:
+            print(f"Local worker unavailable for {self.path}: {exc}; falling back to {REMOTE_BASE}")
+            return False
+
+    def fetch_proxy_response(self, url, method="GET", head_only=False, timeout=15):
+        request = Request(
+            url,
+            method="HEAD" if head_only else method,
+            headers={
+                "User-Agent": "uyc-local-dev-server",
+            },
+        )
+
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                body = b"" if head_only else response.read()
+                return response.status, response.headers, body
+        except HTTPError as exc:
+            body = b"" if head_only else exc.read()
+            return exc.code, exc.headers, body
+
+    def send_proxy_response(self, status, headers, body, head_only=False):
+        self.send_response(status)
+
+        for header in [
+            "Content-Type",
+            "Content-Length",
+            "Last-Modified",
+            "ETag",
+        ]:
+            value = headers.get(header)
+            if value:
+                self.send_header(header, value)
+
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        if not head_only:
+            self.wfile.write(body)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Local dev server for UYC Webcam")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--root", default="site", help="Directory to serve")
+    parser.add_argument("--weather-worker-url", help="Local weather worker base URL")
+    parser.add_argument("--events-worker-url", help="Local events worker base URL")
+    parser.add_argument("--no-open", action="store_true", help="Do not open a browser")
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -200,6 +268,12 @@ def main():
     if not root.exists():
         print(f"Root directory does not exist: {root}", file=sys.stderr)
         sys.exit(1)
+
+    if args.weather_worker_url:
+        LOCAL_WORKER_TARGETS["/var/weather.json"] = args.weather_worker_url.rstrip("/")
+
+    if args.events_worker_url:
+        LOCAL_WORKER_TARGETS["/var/events7day.json"] = args.events_worker_url.rstrip("/")
 
     server = ThreadingHTTPServer(
         ("127.0.0.1", args.port),
@@ -211,12 +285,18 @@ def main():
 
     print(f"Serving {root}")
     print(f"Local site: http://127.0.0.1:{args.port}/")
-    print(f"Proxying /var/* to {REMOTE_BASE}/var/*")
+    if LOCAL_WORKER_TARGETS:
+        print("Local worker JSON sources:")
+        for path, worker_url in LOCAL_WORKER_TARGETS.items():
+            print(f"  {path} -> {worker_url}{path} (falls back to {REMOTE_BASE}{path})")
+    else:
+        print(f"Proxying /var/* to {REMOTE_BASE}/var/*")
     print("Live reload enabled for files under the served root")
     print("Press Ctrl+C to stop")
 
     try:
-        webbrowser.open(f"http://127.0.0.1:{args.port}/")
+        if not args.no_open:
+            webbrowser.open(f"http://127.0.0.1:{args.port}/")
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopping")
