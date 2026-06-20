@@ -623,6 +623,14 @@ header::before {
     vector-effect: non-scaling-stroke;
 }
 
+.wind-direction.is-station-observation .wind-arrow circle {
+    fill: var(--uyc-blue-dark);
+}
+
+.wind-direction.is-station-observation .wind-arrow path {
+    stroke: var(--uyc-yellow);
+}
+
 .forecast-heading {
     margin: var(--space-panel) 0 var(--space-md) 0;
 }
