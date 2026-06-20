@@ -125,9 +125,9 @@ async function updateWeather(env: Env): Promise<void> {
     }
   );
 
-  await purgeCloudflareCache(env);
-
   console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
+
+  await purgeCloudflareCache(env);
 }
 
 async function buildWeatherOutput(env: Env): Promise<Record<string, unknown>> {
