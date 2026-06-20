@@ -21,13 +21,41 @@ export async function fetchOpenMeteoWeather(): Promise<{
     }
   });
 
+  console.log("Open-Meteo response", {
+    ok: response.ok,
+    status: response.status,
+    statusText: response.statusText,
+    url: response.url,
+    contentType: response.headers.get("content-type"),
+    cacheControl: response.headers.get("cache-control"),
+    date: response.headers.get("date"),
+    lastModified: response.headers.get("last-modified"),
+    age: response.headers.get("age"),
+    cfCacheStatus: response.headers.get("cf-cache-status")
+  });
+
   if (!response.ok) {
     throw new Error(`Weather API failed: ${response.status} ${response.statusText}`);
   }
 
+  const weather = await response.json<OpenMeteoWeather>();
+
+  console.log("Open-Meteo parsed summary", {
+    currentTime: typeof weather.current?.time === "string" ? weather.current.time : null,
+    currentInterval: typeof weather.current?.interval === "number" ? weather.current.interval : null,
+    timezone: typeof weather.timezone === "string" ? weather.timezone : null,
+    utcOffsetSeconds: typeof weather.utc_offset_seconds === "number" ? weather.utc_offset_seconds : null,
+    hourlyPoints: Array.isArray((weather.hourly as Record<string, unknown> | undefined)?.time)
+      ? ((weather.hourly as Record<string, unknown>).time as unknown[]).length
+      : null,
+    dailyPoints: Array.isArray((weather.daily as Record<string, unknown> | undefined)?.time)
+      ? ((weather.daily as Record<string, unknown>).time as unknown[]).length
+      : null
+  });
+
   return {
     sourceUrl,
-    weather: await response.json()
+    weather
   };
 }
 
