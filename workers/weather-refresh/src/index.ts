@@ -1,7 +1,7 @@
 import { isAccessRequestAuthorized } from "../../shared/access-auth.ts";
+import { fetchOpenMeteoWeather, type OpenMeteoWeather } from "./openMeteo";
+import { fetchWeatherStationWindReading, type WeatherStationWindReading } from "./weatherStation";
 
-const LATITUDE = "54.5950";
-const LONGITUDE = "-2.8412";
 const WEATHER_OBJECT_KEY_DEFAULT = "var/weather.json";
 const WEATHER_WORKER_PATH = "weather-worker";
 
@@ -62,26 +62,19 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
 }
 
 async function updateWeather(env: Env): Promise<void> {
-  const weatherApiUrl = buildWeatherApiUrl();
-
-  const response = await fetch(weatherApiUrl, {
-    headers: {
-      "accept": "application/json"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Weather API failed: ${response.status} ${response.statusText}`);
-  }
-
-  const sourceWeather = await response.json();
+  const stationReadingPromise = fetchWeatherStationWindReading();
+  const { sourceUrl, weather: sourceWeather } = await fetchOpenMeteoWeather();
+  const stationReading = await stationReadingPromise;
+  const currentWeather = applyWeatherStationWind(sourceWeather.current, stationReading);
 
   const output = {
     schema_version: 1,
     environment: env.ENVIRONMENT,
     updated_at: new Date().toISOString(),
-    source_url: weatherApiUrl,
-    ...sourceWeather
+    source_url: sourceUrl,
+    weather_station: stationReading,
+    ...sourceWeather,
+    current: currentWeather
   };
 
   const objectKey = env.WEATHER_OBJECT_KEY || WEATHER_OBJECT_KEY_DEFAULT;
@@ -100,6 +93,24 @@ async function updateWeather(env: Env): Promise<void> {
   await purgeCloudflareCache(env);
 
   console.log(`[${env.ENVIRONMENT}] Updated ${objectKey}`);
+}
+
+function applyWeatherStationWind(
+  currentWeather: OpenMeteoWeather["current"],
+  stationReading: WeatherStationWindReading | null
+): OpenMeteoWeather["current"] {
+  if (!currentWeather || !stationReading?.is_fresh) {
+    return currentWeather;
+  }
+
+  return {
+    ...currentWeather,
+    wind_speed_10m: stationReading.wind_speed_10m,
+    wind_gusts_10m: stationReading.wind_gusts_10m,
+    wind_direction_10m: stationReading.wind_direction_10m,
+    wind_source: "pooley_bridge_weather_station",
+    wind_observed_at: stationReading.observed_at
+  };
 }
 
 async function purgeCloudflareCache(env: Env): Promise<void> {
@@ -127,57 +138,4 @@ async function purgeCloudflareCache(env: Env): Promise<void> {
   }
 
   console.log(`[${env.ENVIRONMENT}] Purged Cloudflare cache for ${env.CACHE_PURGE_URL}`);
-}
-
-function buildWeatherApiUrl(): string {
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-
-  url.searchParams.set("latitude", LATITUDE);
-  url.searchParams.set("longitude", LONGITUDE);
-
-  url.searchParams.set(
-    "current",
-    [
-      "temperature_2m",
-      "apparent_temperature",
-      "precipitation",
-      "weather_code",
-      "wind_speed_10m",
-      "wind_gusts_10m",
-      "wind_direction_10m",
-      "is_day"
-    ].join(",")
-  );
-
-  url.searchParams.set(
-    "hourly",
-    [
-      "temperature_2m",
-      "precipitation_probability",
-      "weather_code",
-      "wind_speed_10m",
-      "wind_gusts_10m",
-      "wind_direction_10m",
-      "is_day"
-    ].join(",")
-  );
-
-  url.searchParams.set(
-    "daily",
-    [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "precipitation_probability_max",
-      "wind_speed_10m_max",
-      "wind_gusts_10m_max",
-      "wind_direction_10m_dominant"
-    ].join(",")
-  );
-
-  url.searchParams.set("timezone", "Europe/London");
-  url.searchParams.set("forecast_days", "4");
-  url.searchParams.set("wind_speed_unit", "mph");
-
-  return url.toString();
 }
