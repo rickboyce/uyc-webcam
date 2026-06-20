@@ -45,18 +45,11 @@ type WeatherOutput = {
 type RefreshSourceSummary = {
   forecast: {
     id: string;
-    label: string;
-    type: "forecast";
-    source_url: string;
-    current_time: string | null;
-    timezone: string | null;
+    time: string | null;
   };
   weather_stations: Array<{
     id: string;
-    label: string;
-    type: "weather_station";
-    source_url: string;
-    observed_at: string;
+    time: string;
     age_minutes: number;
     is_fresh: boolean;
   }>;
@@ -131,9 +124,9 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
 
   return Response.json({
     ok: true,
-    environment: env.ENVIRONMENT,
+    env: env.ENVIRONMENT,
     refreshed_at: output.updated_at,
-    object_key: weatherObjectKey(env),
+    object: weatherObjectKey(env),
     sources: buildRefreshSourceSummary(output)
   });
 }
@@ -198,22 +191,13 @@ function buildRefreshSourceSummary(output: WeatherOutput): RefreshSourceSummary 
   return {
     forecast: {
       id: output.forecast.id,
-      label: output.forecast.label,
-      type: output.forecast.type,
-      source_url: output.forecast.source_url,
-      current_time: typeof output.forecast.current?.time === "string"
+      time: typeof output.forecast.current?.time === "string"
         ? output.forecast.current.time
-        : null,
-      timezone: typeof output.forecast.timezone === "string"
-        ? output.forecast.timezone
         : null
     },
     weather_stations: output.weather_stations.map((station) => ({
       id: station.id,
-      label: station.label,
-      type: station.type,
-      source_url: station.source_url,
-      observed_at: station.observed_at,
+      time: station.observed_at,
       age_minutes: station.age_minutes,
       is_fresh: station.is_fresh
     }))
