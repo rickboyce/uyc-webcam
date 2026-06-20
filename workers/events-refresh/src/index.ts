@@ -94,6 +94,10 @@ function isManualRefreshPath(pathname: string, env: Env): boolean {
 }
 
 async function handleManualRefresh(request: Request, env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildEventsOutput());
+  }
+
   if (env.ENVIRONMENT !== "local" && !(await isAccessRequestAuthorized(request, env))) {
     return Response.json(
       { ok: false, error: "Unauthorized" },
@@ -111,6 +115,10 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
 }
 
 async function handleEventsObjectRead(env: Env): Promise<Response> {
+  if (env.ENVIRONMENT === "local") {
+    return jsonResponse(await buildEventsOutput());
+  }
+
   const objectKey = eventsObjectKey(env);
   const object = await env.UYC_BUCKET.get(objectKey);
 
@@ -131,20 +139,7 @@ async function handleEventsObjectRead(env: Env): Promise<Response> {
 }
 
 async function updateEvents(env: Env): Promise<void> {
-  const response = await fetch(CALENDAR_URL, {
-    headers: {
-      "User-Agent": "uyc-webcam-events/1.0",
-      "Accept": "text/calendar,*/*"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Calendar fetch failed: ${response.status} ${response.statusText}`);
-  }
-
-  const icsText = await response.text();
-  const output = convertIcsTextToJson(icsText, CALENDAR_URL);
-
+  const output = await buildEventsOutput();
   const objectKey = eventsObjectKey(env);
 
   await env.UYC_BUCKET.put(
@@ -163,6 +158,30 @@ async function updateEvents(env: Env): Promise<void> {
   console.log(
     `[${env.ENVIRONMENT}] Updated ${objectKey} with ${output.events.length} event entries`
   );
+}
+
+async function buildEventsOutput() {
+  const response = await fetch(CALENDAR_URL, {
+    headers: {
+      "User-Agent": "uyc-webcam-events/1.0",
+      "Accept": "text/calendar,*/*"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Calendar fetch failed: ${response.status} ${response.statusText}`);
+  }
+
+  const icsText = await response.text();
+  return convertIcsTextToJson(icsText, CALENDAR_URL);
+}
+
+function jsonResponse(output: unknown): Response {
+  return Response.json(output, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
+  });
 }
 
 async function purgeCloudflareCache(env: Env): Promise<void> {

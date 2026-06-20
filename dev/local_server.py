@@ -201,12 +201,6 @@ class DevHandler(SimpleHTTPRequestHandler):
         try:
             status, headers, body = self.fetch_proxy_response(local_url, head_only=head_only, timeout=3)
 
-            if status == 404 and not head_only:
-                refresh_url = local_worker_url + "/refresh"
-                print(f"Local worker object missing for {self.path}; refreshing {refresh_url}")
-                self.fetch_proxy_response(refresh_url, method="POST", timeout=30)
-                status, headers, body = self.fetch_proxy_response(local_url, head_only=False, timeout=3)
-
             if 200 <= status < 300:
                 self.send_proxy_response(status, headers, body, head_only=head_only)
                 return True

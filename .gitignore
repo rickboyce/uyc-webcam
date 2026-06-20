@@ -35,7 +35,6 @@ pnpm-debug.log*
 
 # Wrangler / Cloudflare Workers local state
 .wrangler/
-.wrangler-local/
 .dev.vars
 .dev.vars.*
 wrangler.toml.bak
