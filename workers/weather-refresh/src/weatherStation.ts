@@ -47,6 +47,8 @@ export async function fetchWeatherStationWindReading(): Promise<WeatherStationWi
       signal: AbortSignal.timeout(WEATHER_STATION_TIMEOUT_MS)
     });
 
+    console.log(response);
+    
     if (!response.ok) {
       throw new Error(`Weather station failed: ${response.status} ${response.statusText}`);
     }
