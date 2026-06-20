@@ -42,7 +42,9 @@ export async function fetchWeatherStationWindReading(): Promise<WeatherStationWi
   try {
     const response = await fetch(WEATHER_STATION_URL, {
       headers: {
-        "accept": "text/html"
+        "accept": "text/html",
+        "cache-control": "no-store",
+        "pragma": "no-cache"
       },
       signal: AbortSignal.timeout(WEATHER_STATION_TIMEOUT_MS)
     });
