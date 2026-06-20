@@ -46,7 +46,7 @@ export default {
     const url = new URL(request.url);
 
     if (isWeatherObjectPath(url.pathname, env)) {
-      return handleWeatherObjectRead(env);
+      return handleWeatherObjectRequest(env);
     }
 
     if (isManualRefreshPath(url.pathname, env)) {
@@ -99,28 +99,15 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
   });
 }
 
-async function handleWeatherObjectRead(env: Env): Promise<Response> {
+async function handleWeatherObjectRequest(env: Env): Promise<Response> {
   if (env.ENVIRONMENT === "local") {
     return jsonResponse(await buildWeatherOutput(env));
   }
 
-  const objectKey = weatherObjectKey(env);
-  const object = await env.UYC_BUCKET.get(objectKey);
-
-  if (!object) {
-    return Response.json(
-      { ok: false, error: `Weather object not found: ${objectKey}` },
-      { status: 404 }
-    );
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set("Cache-Control", "no-store");
-
-  return new Response(object.body, {
-    headers
-  });
+  return Response.json(
+    { ok: false, error: "Weather JSON is only served directly by the local worker" },
+    { status: 404 }
+  );
 }
 
 async function updateWeather(env: Env): Promise<void> {

@@ -61,7 +61,7 @@ export default {
     const url = new URL(request.url);
 
     if (isEventsObjectPath(url.pathname, env)) {
-      return handleEventsObjectRead(env);
+      return handleEventsObjectRequest(env);
     }
 
     if (isManualRefreshPath(url.pathname, env)) {
@@ -114,28 +114,15 @@ async function handleManualRefresh(request: Request, env: Env): Promise<Response
   });
 }
 
-async function handleEventsObjectRead(env: Env): Promise<Response> {
+async function handleEventsObjectRequest(env: Env): Promise<Response> {
   if (env.ENVIRONMENT === "local") {
     return jsonResponse(await buildEventsOutput());
   }
 
-  const objectKey = eventsObjectKey(env);
-  const object = await env.UYC_BUCKET.get(objectKey);
-
-  if (!object) {
-    return Response.json(
-      { ok: false, error: `Events object not found: ${objectKey}` },
-      { status: 404 }
-    );
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set("Cache-Control", "no-store");
-
-  return new Response(object.body, {
-    headers
-  });
+  return Response.json(
+    { ok: false, error: "Events JSON is only served directly by the local worker" },
+    { status: 404 }
+  );
 }
 
 async function updateEvents(env: Env): Promise<void> {
