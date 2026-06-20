@@ -13,8 +13,11 @@ export async function fetchOpenMeteoWeather(): Promise<{
 }> {
   const sourceUrl = buildWeatherApiUrl();
   const response = await fetch(sourceUrl, {
+    cache: "no-store",
     headers: {
-      "accept": "application/json"
+      "accept": "application/json",
+      "cache-control": "no-store",
+      "pragma": "no-cache"
     }
   });
 
