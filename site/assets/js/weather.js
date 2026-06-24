@@ -195,7 +195,7 @@ function compassDirection(degrees) {
 
 function windDirectionMarkup(direction, degrees, options = {}) {
     if (!direction || !Number.isFinite(degrees)) {
-        return `<span class="wind-direction is-unavailable" aria-label="Wind direction unavailable"><span>No direction</span></span>`;
+        return "";
     }
 
     const rotation = (degrees + 90) % 360;
@@ -360,13 +360,15 @@ function renderCurrentWeather(elements, data) {
     const beaufortForce = beaufortScaleFromMph(windMph);
     const windDescription = windDir
         ? `Wind ${windMph} mph from ${windDir}, Beaufort force ${beaufortForce}`
-        : `Wind ${windMph} mph, no direction, Beaufort force ${beaufortForce}`;
+        : `Wind ${windMph} mph, Beaufort force ${beaufortForce}`;
+    const windDirection = windDirectionMarkup(windDir, windDirectionDegrees, { isStationObservation: hasStationWind });
+    const windDirectionPrefix = windDirection ? `${windDirection} ` : "";
 
     elements.conditionHeading.textContent = ` \u2013 ${currentWeatherDescription}`;
     elements.now.innerHTML =
         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels like ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), windDescription, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, windDirectionDegrees, { isStationObservation: hasStationWind })} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), windDescription, beaufortForce)}<span class="current-primary">${windDirectionPrefix}${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
         `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }

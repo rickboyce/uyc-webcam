@@ -598,13 +598,6 @@ header::before {
     white-space: nowrap;
 }
 
-.wind-direction.is-unavailable {
-    color: var(--muted);
-    font-size: 0.72em;
-    font-weight: var(--weight-strong);
-    letter-spacing: 0;
-}
-
 .wind-arrow {
     display: inline-block;
     width: 1.45em;
