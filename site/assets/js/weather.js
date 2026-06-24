@@ -184,12 +184,20 @@ function temperatureIconName(celsius) {
 }
 
 function compassDirection(degrees) {
+    if (!Number.isFinite(degrees)) {
+        return null;
+    }
+
     const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
     const index = Math.round(degrees / 45) % 8;
     return directions[index];
 }
 
 function windDirectionMarkup(direction, degrees, options = {}) {
+    if (!direction || !Number.isFinite(degrees)) {
+        return "";
+    }
+
     const rotation = (degrees + 90) % 360;
     const sourceClass = options.isStationObservation ? " is-station-observation" : "";
 
@@ -342,17 +350,25 @@ function renderCurrentWeather(elements, data) {
     const feels = Math.round(current.apparent_temperature);
     const windMph = Math.round(currentWind.wind_speed_10m);
     const gustMph = Math.round(currentWind.wind_gusts_10m);
-    const windDir = compassDirection(currentWind.wind_direction_10m);
+    const windDirectionDegrees = currentWind.wind_direction_10m === null || currentWind.wind_direction_10m === undefined
+        ? null
+        : Number(currentWind.wind_direction_10m);
+    const windDir = compassDirection(windDirectionDegrees);
     const rainRisk = shortTermRainRisk(hourly);
     const currentWeatherDescription = weatherDescription(current.weather_code);
     const currentIsDay = current.is_day === undefined ? true : isDaytime(current.is_day);
     const beaufortForce = beaufortScaleFromMph(windMph);
+    const windDescription = windDir
+        ? `Wind ${windMph} mph from ${windDir}, Beaufort force ${beaufortForce}`
+        : `Wind ${windMph} mph, Beaufort force ${beaufortForce}`;
+    const windDirection = windDirectionMarkup(windDir, windDirectionDegrees, { isStationObservation: hasStationWind });
+    const windDirectionPrefix = windDirection ? `${windDirection} ` : "";
 
     elements.conditionHeading.textContent = ` \u2013 ${currentWeatherDescription}`;
     elements.now.innerHTML =
         `${meteoconMarkup(temperatureIconName(temp), `Temperature ${temp} degrees Celsius`)}<span class="current-primary">${temp}&deg;C</span><span class="current-detail">Feels like ${feels}&deg;C</span>`;
     elements.wind.innerHTML =
-        `${windIconMarkup(windsockIconName(windMph), `Wind ${windMph} mph, Beaufort force ${beaufortForce}`, beaufortForce)}<span class="current-primary">${windDirectionMarkup(windDir, currentWind.wind_direction_10m, { isStationObservation: hasStationWind })} ${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
+        `${windIconMarkup(windsockIconName(windMph), windDescription, beaufortForce)}<span class="current-primary">${windDirectionPrefix}${windMph}<span class="wind-unit"> mph</span></span><span class="current-detail">Gusting ${gustMph} mph</span>`;
     elements.rain.innerHTML =
         `${weatherIconMarkup(current.weather_code, currentWeatherDescription, currentIsDay)}<span class="current-primary">${rainRisk === null ? "\u2014" : `${rainRisk}%`}</span><span class="current-detail">next ${RAIN_RISK_HOURS} hours</span>`;
 }
