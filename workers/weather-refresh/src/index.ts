@@ -18,10 +18,10 @@ type WeatherStationSource = {
   current: {
     wind_speed_10m: number;
     wind_gusts_10m: number;
-    wind_direction_10m: number;
+    wind_direction_10m: number | null;
   };
   metadata: {
-    wind_direction_compass: string;
+    wind_direction_compass: string | null;
   };
 };
 

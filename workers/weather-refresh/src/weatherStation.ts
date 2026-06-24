@@ -34,8 +34,8 @@ export type WeatherStationWindReading = {
   source_url: string;
   wind_speed_10m: number;
   wind_gusts_10m: number;
-  wind_direction_10m: number;
-  wind_direction_compass: string;
+  wind_direction_10m: number | null;
+  wind_direction_compass: string | null;
 };
 
 export async function fetchWeatherStationWindReading(): Promise<WeatherStationWindReading | null> {
@@ -83,7 +83,7 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
     /Wind Speed \(gust\)\s+([0-9]+(?:\.[0-9]+)?)\s+mph\s+Wind Speed \(avg\)\s+([0-9]+(?:\.[0-9]+)?)\s+mph/
   );
   const windBearingMatch = text.match(
-    /Wind Bearing\s+([0-9]+(?:\.[0-9]+)?)\s+(?:degrees|\u00b0)\s+([A-Z]{1,3})/
+    /Wind Bearing\s+([0-9]+(?:\.[0-9]+)?)\s+(?:degrees|\u00b0)\s+([A-Z]{1,3}|---)/
   );
 
   console.log("Weather station parsed text excerpt", text.slice(0, 1_000));
@@ -93,7 +93,7 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
     windBearing: windBearingMatch?.[0] ?? null
   });
 
-  if (!observedMatch || !windSpeedMatch || !windBearingMatch) {
+  if (!observedMatch || !windSpeedMatch) {
     throw new Error("Weather station page did not contain expected wind fields");
   }
 
@@ -117,6 +117,9 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
   const ageMinutes = Math.round((now.getTime() - observedAtDate.getTime()) / 60_000);
   const futureToleranceMinutes = -WEATHER_STATION_FUTURE_TOLERANCE_MINUTES;
   const isFresh = ageMinutes >= futureToleranceMinutes && ageMinutes <= WEATHER_STATION_FRESH_MINUTES;
+  const windDirectionCompass = windBearingMatch?.[2] === "---"
+    ? null
+    : windBearingMatch?.[2] ?? null;
 
   return {
     observed_at: observedAt,
@@ -125,8 +128,8 @@ function parseWeatherStationWindReading(html: string, now: Date): WeatherStation
     source_url: WEATHER_STATION_URL,
     wind_speed_10m: Number(windSpeedMatch[2]),
     wind_gusts_10m: Number(windSpeedMatch[1]),
-    wind_direction_10m: Number(windBearingMatch[1]),
-    wind_direction_compass: windBearingMatch[2]
+    wind_direction_10m: windDirectionCompass === null ? null : Number(windBearingMatch?.[1]),
+    wind_direction_compass: windDirectionCompass
   };
 }
 
