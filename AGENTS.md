@@ -96,6 +96,10 @@ There is currently no root-level `npm test` script.
 
 ## Verification
 
+Project tasks are authorised to start and stop local development servers and Workers, and to use a browser to test changes. For touch interactions, exercise the change in a touch-capable browser or mobile emulation when available.
+
+Local Codex sessions can use the `uyc-dev` permission profile. See [Codex project setup](README.md#codex-project-setup) for activation.
+
 For simple site changes, run:
 
 ```sh

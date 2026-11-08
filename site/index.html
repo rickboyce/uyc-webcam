@@ -30,10 +30,27 @@
         </div>
     </header>
 
-    <img hidden id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
+    <div class="webcam-frame">
+        <img hidden id="webcam" class="webcam-image" data-src="/var/webcam.jpg" alt="Latest webcam image">
+        <button hidden type="button" id="webcam-open" aria-label="Zoom in on webcam image" aria-haspopup="dialog" aria-controls="webcam-viewer">
+            <span>Zoom in</span>
+        </button>
+    </div>
     <noscript>
         <img class="webcam-image" src="/var/webcam.jpg" alt="Latest webcam image">
     </noscript>
+    <dialog id="webcam-viewer" aria-label="Enlarged webcam image">
+        <div class="webcam-viewport" tabindex="0" role="region" aria-label="Scrollable webcam image"></div>
+        <div class="webcam-toolbar">
+            <div class="webcam-zoom-controls">
+                <button type="button" id="webcam-zoom-out" aria-label="Zoom out">−</button>
+                <span id="webcam-scale"></span>
+                <button type="button" id="webcam-zoom-in" aria-label="Zoom in">+</button>
+            </div>
+            <span class="webcam-gesture-hint">Pinch to zoom · Drag to explore</span>
+            <button type="button" id="webcam-close" autofocus>Close</button>
+        </div>
+    </dialog>
 
     <div class="note">
         Updates every 60 seconds. <span data-js-driven hidden>Latest image: <span id="webcam-timestamp">(loading)</span>.</span> This webcam provides a periodically updated public view of club and lake conditions and may incidentally show people, boats or vehicles - you may not save or use these  images in a way that identifies, targets or intrudes on anyone’s privacy.

@@ -1,0 +1,25 @@
+# Install as .codex/config.toml in this checkout.
+default_permissions = "uyc-dev"
+
+[features]
+network_proxy = true
+
+[permissions.uyc-dev]
+extends = ":workspace"
+
+[permissions.uyc-dev.network]
+enabled = true
+allow_local_binding = true
+
+[permissions.uyc-dev.network.domains]
+# Local site, Wrangler development servers and their test clients.
+"127.0.0.1" = "allow"
+"localhost" = "allow"
+
+# Public test assets, weather icons, Worker data sources and npm dependencies.
+"test.uyc.boats" = "allow"
+"cdn.meteocons.com" = "allow"
+"api.open-meteo.com" = "allow"
+"www.glenriddingcybercafe.co.uk" = "allow"
+"ullswateryachtclub.org" = "allow"
+"registry.npmjs.org" = "allow"

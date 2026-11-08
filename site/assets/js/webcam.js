@@ -1,4 +1,5 @@
 import { formatDateTime } from "./shared.js";
+import { setupWebcamViewer } from "./webcam-viewer.js";
 
 const WEBCAM_PATH = "/var/webcam.jpg";
 const REFRESH_MS = 60_100;
@@ -36,6 +37,7 @@ export function setupWebcam() {
     const timestamp = document.getElementById("webcam-timestamp");
 
     bindWebcamTimestamp(image, timestamp);
+    setupWebcamViewer(image);
     image.src = image.dataset.src;
     image.hidden = false;
     setInterval(() => refreshWebcam(image), REFRESH_MS);

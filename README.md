@@ -115,6 +115,12 @@ cd workers/weather-refresh && npm run dev
 cd workers/events-refresh && npm run dev
 ```
 
+### Codex project setup
+
+Open a new local Codex chat for this trusted checkout and select **Custom (config.toml)** in the permissions control. The project profile in [config.toml](.codex/config.toml) extends workspace access with local server binding and a network proxy for the public test assets, Worker data sources and npm registry. The site uses `127.0.0.1:8080` and the local Workers use ports `8787` and `8788`.
+
+To verify activation, have the agent start `python3 dev/dev.py --no-open`, check that the page and `/var/webcam.jpg` respond, then open `http://127.0.0.1:8080/` in the built-in browser. If browser access needs a site permission, add that origin under **Settings → Browser → Agent permissions**.
+
 ---
 
 ## Additional data sources and credits
