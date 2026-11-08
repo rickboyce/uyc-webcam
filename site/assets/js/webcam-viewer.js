@@ -48,13 +48,26 @@ export function setupWebcamViewer(image) {
         placePoint(point, target);
     }
 
+    const visibleArea = window.visualViewport;
+    function fitDialogToScreen() {
+        if (!visibleArea) return;
+        dialog.style.left = `${visibleArea.offsetLeft}px`;
+        dialog.style.top = `${visibleArea.offsetTop}px`;
+        dialog.style.width = `${visibleArea.width}px`;
+        dialog.style.height = `${visibleArea.height}px`;
+    }
+
     trigger.addEventListener("click", (event) => {
         const point = event.detail && event.target === trigger
             ? imagePoint(image, { x: event.clientX, y: event.clientY })
             : { x: 0.5, y: 0.5 };
         // Reserve the inline image's space while the same refreshing image is in the dialog.
         frame.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
+        // Place Close on screen before showModal focuses it on a pinch-zoomed page.
+        fitDialogToScreen();
         dialog.showModal();
+        visibleArea?.addEventListener("resize", fitDialogToScreen);
+        visibleArea?.addEventListener("scroll", fitDialogToScreen);
         viewport.append(image);
         setZoom(OPEN_ZOOM);
         placePoint(point, centre());
@@ -68,6 +81,8 @@ export function setupWebcamViewer(image) {
     });
 
     dialog.addEventListener("close", () => {
+        visibleArea?.removeEventListener("resize", fitDialogToScreen);
+        visibleArea?.removeEventListener("scroll", fitDialogToScreen);
         pointers.clear();
         dismissOnRelease = false;
         frame.prepend(image);
